@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import re
 import time
@@ -175,12 +176,23 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
 
 
 def main():
-    # TODO: pass conditions and dump directory by command line argument
+    parser = argparse.ArgumentParser(description="Search and dump property data from suumo")
+    parser.add_argument("--dump-dir", default="dumped_data",
+                        help="Directory where to dump the pages data. If the directory"
+                             "does not exist, it will be created.")
+    parser.add_argument("--building-categories", nargs="*", required=True,
+                        help="Categories of buildings (e.g. 'マンション')")
+    parser.add_argument("--wards", nargs="*", required=True,
+                        help="Tokyo wards (e.g. '港区', '中央区')")
+    parser.add_argument("--only-today", action="store_true",
+                        help="Search and dump properties added today")
+
     datetime_str = now_str_jst()
-    dump_dir = Path(f"dumped_data/{datetime_str}")
+    args = parser.parse_args()
+    dump_dir = Path(f"{args.dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
-    search_url = build_search_url(building_categories=["マンション"],
-                                  wards=["台東区"], only_today=False)
+    search_url = build_search_url(building_categories=args.building_categories,
+                                  wards=args.wards, only_today=False)
     page = 1
     while True:
         response = requests.get(search_url)
