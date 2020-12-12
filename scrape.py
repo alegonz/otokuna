@@ -1,8 +1,8 @@
 import datetime
-import json
 import re
+import time
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Sequence, Dict, Set
 
 import attr
 import bs4
@@ -18,32 +18,44 @@ def now_str_jst(fmt="%Y%m%d%H%M%S"):
     return now.strftime(fmt)
 
 
-def get_condition_codes(soup, name):
-    codes = {}
-    for checkbox in soup.find_all("input", attrs=dict(type="checkbox", name=name)):
+def _get_condition_codes_by_value(soup, cond_id):
+    codes_by_value = {}
+    for checkbox in soup.find_all("input", attrs=dict(type="checkbox", name=cond_id)):
         label = soup.find("label", attrs={"for": checkbox["id"]})
-        item_name = list(label.strings)[0]
-        item_code = checkbox["value"]
-        codes[item_name] = item_code
-    return codes
+        value = list(label.strings)[0]
+        code = checkbox["value"]
+        codes_by_value[value] = code
+    return codes_by_value
 
 
-def build_condition_codes():
+def _build_condition_codes(
+        building_categories: Optional[Sequence[str]] = None,
+        wards: Optional[Sequence[str]] = None,
+        special_conditions: Optional[Sequence[str]] = None
+) -> Dict[str, Set[str]]:
     response = requests.get(f"{SUUMO_URL}/chintai/tokyo/city/")
     soup = bs4.BeautifulSoup(response.content, "html.parser")
-    conditions = {}
-    # sc = ward
-    # ts = building type
-    # kz = structure type
-    # tc = special conditions
-    for cond in ("sc", "ts", "kz", "tc"):
-        conditions[cond] = get_condition_codes(soup, cond)
-    return conditions
+    condition_codes = {}
+    values_by_cond_id = {
+        "ts": building_categories,
+        "sc": wards,
+        "tc": special_conditions,
+        # "kz" structure_types
+    }
+    for cond_id, values in values_by_cond_id.items():
+        if values is not None:
+            codes_by_value = _get_condition_codes_by_value(soup, cond_id)
+            values_not_found = set(values) - set(codes_by_value.keys())
+            if values_not_found:
+                raise RuntimeError(f"invalid values for condition {cond_id}: {values_not_found}")
+            condition_codes[cond_id] = {code for value, code in codes_by_value.items() if value in values}
+    return condition_codes
 
 
-def build_search_url(search_conditions, *, only_today=True):
+def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str], only_today=True):
     """Build search url
-    :param search_conditions: a dictionary of items by condition codes
+    :param building_categories
+    :param wards
     :param only_today:
     :return: search url that filter the results according to the given search conditions
 
@@ -68,18 +80,13 @@ def build_search_url(search_conditions, *, only_today=True):
                           f"&mb=0&mt=9999999" \
                           f"&et=9999999&cn=9999999" \
                           f"&pc=50"
-    condition_codes = build_condition_codes()
-
-    def build_url_param(condition_, item_):
-        code = condition_codes[condition_][item_]
-        return f"{condition_}={code}"
+    special_conditions = {"本日の新着物件"} if only_today else None
+    condition_codes = _build_condition_codes(building_categories, wards, special_conditions)
 
     url_params = []
-    for condition, items in search_conditions.items():
-        for item in items:
-            url_params.append(build_url_param(condition, item))
-    if only_today:
-        url_params.append(build_url_param("tc", "本日の新着物件"))
+    for cond_id, codes in condition_codes.items():
+        for code in codes:
+            url_params.append(f"{cond_id}={code}")
     return search_url_template.format("&".join(url_params))
 
 
@@ -168,21 +175,14 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
 
 
 def main():
-    # TODO: pass conditions by json file and dump directory by command line argument
+    # TODO: pass conditions and dump directory by command line argument
     datetime_str = now_str_jst()
     dump_dir = Path(f"dumped_data/{datetime_str}")
     dump_dir.mkdir(parents=True)
-    search_conditions = {
-        "sc": ["台東区"],
-        "ts": ["マンション"]
-    }
-
-    with open(dump_dir / "search_conditions.json", "w") as f:
-        json.dump(search_conditions, f)
-
-    search_url = build_search_url(search_conditions, only_today=True)
+    search_url = build_search_url(building_categories=["マンション"],
+                                  wards=["台東区"], only_today=False)
     page = 1
-    while search_url is not None:
+    while True:
         response = requests.get(search_url)
         search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
         if page == 1:
@@ -191,9 +191,12 @@ def main():
         print(f"Got page {page}:", search_url)
         with open(dump_dir / f"page_{page:03d}.html", "w") as f:
             f.write(response.text)
-        search_url = scrape_next_page_url(search_results_soup)
-        page += 1
         # properties = scrape_properties(search_results_soup)
+        search_url = scrape_next_page_url(search_results_soup)
+        if search_url is None:
+            break
+        page += 1
+        time.sleep(2)
 
 
 if __name__ == "__main__":
