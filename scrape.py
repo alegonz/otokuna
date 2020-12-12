@@ -211,7 +211,7 @@ def main():
     dump_dir = Path(f"{args.dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
     search_url = build_search_url(building_categories=args.building_categories,
-                                  wards=args.wards, only_today=False)
+                                  wards=args.wards, only_today=args.only_today)
     page = 1
     while True:
         response = requests.get(search_url)
