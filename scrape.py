@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import logging
 import re
 import time
 from pathlib import Path
@@ -7,9 +8,24 @@ from typing import List, Optional, Sequence, Dict, Set
 
 import attr
 import bs4
+import coloredlogs
 import requests
 
 SUUMO_URL = "https://suumo.jp"
+
+
+def setup_logger():
+    logger = logging.getLogger("scrape")
+    loglevel = logging.INFO
+    logger.setLevel(loglevel)
+    logger.addHandler(logging.StreamHandler())
+    coloredlogs.install(level=loglevel, logger=logger,
+                        fmt='%(asctime)s.%(msecs)03d %(name)s[%(process)d] %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S')
+    return logger
+
+
+logger = setup_logger()
 
 
 def now_str_jst(fmt="%Y%m%d%H%M%S"):
@@ -83,6 +99,7 @@ def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str]
                           f"&pc=50"
     special_conditions = {"本日の新着物件"} if only_today else None
     condition_codes = _build_condition_codes(building_categories, wards, special_conditions)
+    logger.info(f"Search condition codes: {condition_codes}")
 
     url_params = []
     for cond_id, codes in condition_codes.items():
@@ -199,8 +216,8 @@ def main():
         search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
         if page == 1:
             n_pages = scrape_number_of_pages(search_results_soup)
-            print(f"Total result pages: {n_pages}")
-        print(f"Got page {page}:", search_url)
+            logger.info(f"Total result pages: {n_pages}")
+        logger.info(f"Got page {page}: {search_url}")
         with open(dump_dir / f"page_{page:03d}.html", "w") as f:
             f.write(response.text)
         # properties = scrape_properties(search_results_soup)
