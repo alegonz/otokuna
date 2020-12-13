@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-
 import re
+from argparse import ArgumentParser
 from pathlib import Path
 from statistics import mean
 from typing import List, Tuple
@@ -129,7 +129,7 @@ class Property:
     room: Room
 
 
-def scrape_properties_from_html_file(filename) -> List[Property]:
+def scrape_properties_from_html_file(filename: Path) -> List[Property]:
     with open(filename, "r") as file:
         search_results_soup = bs4.BeautifulSoup(file, "html.parser")
     building_tags = search_results_soup.find_all("div", class_="cassetteitem")
@@ -173,9 +173,9 @@ def make_properties_dataframe(properties: List[Property]) -> pd.DataFrame:
     return pd.DataFrame(series)
 
 
-def build_df_from_data(data_dir):
+def build_df_from_data_files(filenames: List[Path]):
     all_properties = []
-    for filename in sorted(Path(data_dir).glob("*.html")):
+    for filename in filenames:
         properties = scrape_properties_from_html_file(filename)
         all_properties.extend(properties)
         print(f"Scraped {filename} ({len(properties)}/{len(all_properties)})")
@@ -183,6 +183,23 @@ def build_df_from_data(data_dir):
 
 
 if __name__ == "__main__":
-    data_dir = "dumped_data/20201212215539"
-    df = build_df_from_data(data_dir)
-    df.to_csv("test.csv")
+    parser = ArgumentParser(description="Scrape property data from paged html files "
+                                        "and make a dataframe. The dataframe is stored "
+                                        "in feather format.")
+    parser.add_argument("html_dir", help="Path to html data. It can also be a folder with html data.")
+    parser.add_argument("--output-filename", help="Output filename. By default it is set "
+                                                  "to the basename of html_dir.")
+    parser.add_argument("--output-format", choices=("feather", "csv"),
+                        default="csv", help="Output file format")
+    args = parser.parse_args()
+
+    html_dir = Path(args.html_dir)
+    filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
+    df = build_df_from_data_files(filenames)
+
+    output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)
+    output_filename = output_filename.with_suffix(f".{args.output_format}").name
+    if args.output_format == "feather":
+        df.to_feather(output_filename)
+    else:  # args.output_format == "csv"
+        df.to_csv(output_filename)
