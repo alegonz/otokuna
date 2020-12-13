@@ -131,6 +131,8 @@ def main():
                         help="Tokyo wards (e.g. '港区', '中央区')")
     parser.add_argument("--only-today", action="store_true",
                         help="Search and dump properties added today")
+    parser.add_argument("--sleep-time", default=2,
+                        help="Time to sleep between fetches of result pages")
 
     datetime_str = now_jst_isoformat()
     args = parser.parse_args()
@@ -152,7 +154,7 @@ def main():
         if search_url is None:
             break
         page += 1
-        time.sleep(2)
+        time.sleep(args.sleep_time)
 
 
 if __name__ == "__main__":
