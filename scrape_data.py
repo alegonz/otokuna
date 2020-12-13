@@ -9,16 +9,27 @@ import bs4
 import pandas as pd
 
 
+class ParsingError(Exception):
+    pass
+
+
+def _match_and_raise(pattern, string):
+    match = re.match(pattern, string)
+    if not match:
+        raise ParsingError(f"Could not parse '{string}'")
+    return match
+
+
 def parse_age(s: str) -> int:
     if s == "新築":
         return 0
     pattern = r"築(\d+)年"
-    return int(re.match(pattern, s).group(1))
+    return int(_match_and_raise(pattern, s).group(1))
 
 
 def parse_floors(s: str) -> int:
     pattern = r"(地下\d+地上)?(\d+)階建"
-    return int(re.match(pattern, s).group(2))
+    return int(_match_and_raise(pattern, s).group(2))
 
 
 def parse_money(s: str, *, unit="円") -> int:
@@ -26,18 +37,18 @@ def parse_money(s: str, *, unit="円") -> int:
         return 0
     multipliers_by_unit = {"円": 1, "万円": 10000}
     pattern = rf"(\d*[.]?\d+){unit}"
-    return int(float(re.match(pattern, s).group(1)) * multipliers_by_unit[unit])
+    return int(float(_match_and_raise(pattern, s).group(1)) * multipliers_by_unit[unit])
 
 
 def parse_floor(s: str) -> int:
     # Currently multi-floor (e.g. 2-7階) properties are not supported
     pattern = r"(\d+)階"
-    return int(re.match(pattern, s).group(1))
+    return int(_match_and_raise(pattern, s).group(1))
 
 
 def parse_area(s: str) -> float:
     pattern = r"(\d*[.]?\d+)m2"
-    return float(re.match(pattern, s).group(1))
+    return float(_match_and_raise(pattern, s).group(1))
 
 
 def parse_layout(s: str) -> str:
@@ -112,9 +123,8 @@ def scrape_properties_from_html_file(filename) -> List[Property]:
         for room_tag in room_tags:
             try:
                 room = Room.from_tag(room_tag)
-            except AttributeError as e:
-                # TODO: better logging of parse errors
-                print(f"skipping property due to error: {e}")
+            except ParsingError as e:
+                print(f"Skipping property due to error: {e}")
                 continue
             properties.append(Property(building, room))
     return properties
