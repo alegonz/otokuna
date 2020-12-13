@@ -28,11 +28,11 @@ def setup_logger():
 logger = setup_logger()
 
 
-def now_str_jst(fmt="%Y%m%d%H%M%S"):
-    """Returns the current datetime in JST in YYYYmmddHHMMSS format."""
+def now_jst_isoformat():
+    """Returns the current datetime in JST in ISO format (dropping milliseconds)."""
     timezone_jst = datetime.timezone(datetime.timedelta(hours=+9), "JST")
     now = datetime.datetime.now(tz=timezone_jst)
-    return now.strftime(fmt)
+    return now.isoformat(timespec="seconds")
 
 
 def _get_condition_codes_by_value(soup, cond_id):
@@ -132,7 +132,7 @@ def main():
     parser.add_argument("--only-today", action="store_true",
                         help="Search and dump properties added today")
 
-    datetime_str = now_str_jst()
+    datetime_str = now_jst_isoformat()
     args = parser.parse_args()
     dump_dir = Path(f"{args.dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
