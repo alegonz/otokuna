@@ -2,6 +2,7 @@
 
 import re
 from pathlib import Path
+from statistics import mean
 from typing import List, Tuple
 
 import attr
@@ -30,6 +31,18 @@ def parse_age(s: str) -> int:
 def parse_floors(s: str) -> int:
     pattern = r"(地下\d+地上)?(\d+)階建"
     return int(_match_and_raise(pattern, s).group(2))
+
+
+def parse_transportation(s: str) -> float:
+    """Parse walking time to station in minutes"""
+    pattern = r".*歩(\d+)分$"
+    return float(_match_and_raise(pattern, s).group(1))
+
+
+def parse_address(s: str) -> Tuple[str, str]:
+    """Parse ward and district (without the 丁目)"""
+    ward, district = _match_and_raise(r"東京都(.+区)(\D*)", s).groups()
+    return ward, district
 
 
 def parse_money(s: str, *, unit="円") -> int:
@@ -86,11 +99,6 @@ class Room:
     deposit: int  # 敷金 (¥)
     gratuity: int  # 礼金 (¥)
     layout: str  # 間取り (e.g. 1R, 2LDK)
-    n_rooms: int  # 部屋の数
-    service_room: bool  # サービスルームの有無
-    living_room: bool  # リビングの有無
-    dining_room: bool  # ダイニングの有無
-    kitchen: bool  # キッチンの有無
     area: float  # 面積 m2
     floor: int  # 階 1階~
     detail_href: str  # e.g. https://suumo.jp/chintai/jnc_000054786764/?bc=100216408055
@@ -107,13 +115,11 @@ class Room:
         floor, *_ = tag.find_all("td")[2].stripped_strings
         detail_href = tag.select_one("td.ui-text--midium.ui-text--bold a")["href"]
         jnc_id = re.search(r"jnc_([0-9]*)/", detail_href).group(1)
-        n_rooms, service_room, living_room, dining_room, kitchen = parse_layout(layout)
         return cls(parse_money(rent, unit="万円"),
                    parse_money(admin_fee, unit="円"),
                    parse_money(deposit, unit="万円"),
                    parse_money(gratuity, unit="万円"),
-                   layout, n_rooms, service_room, living_room, dining_room, kitchen,
-                   parse_area(area), parse_floor(floor),
+                   layout, parse_area(area), parse_floor(floor),
                    detail_href, jnc_id)
 
 
@@ -141,13 +147,29 @@ def scrape_properties_from_html_file(filename) -> List[Property]:
     return properties
 
 
-def properties2df(properties: List[Property]) -> pd.DataFrame:
+def make_properties_dataframe(properties: List[Property]) -> pd.DataFrame:
     series = []
     for property_ in properties:
-        dict_ = {f"building_{key}": value
-                 for key, value in attr.asdict(property_.building).items()}
-        dict_.update(attr.asdict(property_.room))
-        series.append(pd.Series(dict_))
+        # Building features
+        feat_dict_ = {f"building_{key}": value
+                      for key, value in attr.asdict(property_.building).items()}
+        # Room features
+        feat_dict_.update(attr.asdict(property_.room))
+        # Layout features
+        (feat_dict_["n_rooms"],
+         feat_dict_["service_room"],
+         feat_dict_["living_room"],
+         feat_dict_["dining_room"],
+         feat_dict_["kitchen"]) = parse_layout(property_.room.layout)
+        # Transportation features:
+        walking_times = [parse_transportation(t) for t in property_.building.transportation if t]
+        feat_dict_["n_stations"] = len(walking_times)
+        feat_dict_["walk_time_station_min"] = min(walking_times)
+        feat_dict_["walk_time_station_avg"] = mean(walking_times)
+        # Address features:
+        feat_dict_["ward"], feat_dict_["district"] = parse_address(property_.building.address)
+
+        series.append(pd.Series(feat_dict_))
     return pd.DataFrame(series)
 
 
@@ -157,7 +179,7 @@ def build_df_from_data(data_dir):
         properties = scrape_properties_from_html_file(filename)
         all_properties.extend(properties)
         print(f"Scraped {filename} ({len(properties)}/{len(all_properties)})")
-    return properties2df(all_properties)
+    return make_properties_dataframe(all_properties)
 
 
 if __name__ == "__main__":
