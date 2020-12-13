@@ -19,18 +19,19 @@ TOKYO_SPECIAL_WARDS = (
 )
 
 
-def setup_logger():
+def setup_logger(filename):
     logger = logging.getLogger("dump")
     loglevel = logging.INFO
     logger.setLevel(loglevel)
     logger.addHandler(logging.StreamHandler())
-    coloredlogs.install(level=loglevel, logger=logger,
-                        fmt='%(asctime)s.%(msecs)03d %(name)s[%(process)d] %(levelname)s %(message)s',
-                        datefmt='%H:%M:%S')
+    log_format = "%(asctime)s.%(msecs)03d %(name)s[%(process)d] %(levelname)s %(message)s"
+
+    file_handler = logging.FileHandler(filename)
+    file_handler.setFormatter(logging.Formatter(log_format))
+    logger.addHandler(file_handler)
+
+    coloredlogs.install(level=loglevel, logger=logger, fmt=log_format, datefmt="%Y-%m-%dT%H:%M:%S%z")
     return logger
-
-
-logger = setup_logger()
 
 
 def now_jst_isoformat():
@@ -104,7 +105,6 @@ def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str]
                           f"&pc=50"
     special_conditions = {"本日の新着物件"} if only_today else None
     condition_codes = _build_condition_codes(building_categories, wards, special_conditions)
-    logger.info(f"Search condition codes: {condition_codes}")
 
     url_params = []
     for cond_id, codes in condition_codes.items():
@@ -140,10 +140,12 @@ def main():
     parser.add_argument("--sleep-time", default=2,
                         help="Time to sleep between fetches of result pages")
 
-    datetime_str = now_jst_isoformat()
     args = parser.parse_args()
+    datetime_str = now_jst_isoformat()
     dump_dir = Path(f"{args.dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
+    logger = setup_logger(dump_dir / "dump.log")
+
     search_url = build_search_url(building_categories=args.building_categories,
                                   wards=args.wards, only_today=args.only_today)
     page = 1
