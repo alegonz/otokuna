@@ -169,7 +169,7 @@ def main():
         logger.info(f"Got page {page}: {next_search_url}")
 
         # dump html data to file
-        with open(dump_dir / f"page_{page:03d}.html", "w") as f:
+        with open(dump_dir / f"page_{page:06d}.html", "w") as f:
             f.write(response.text)
 
         if scrape_next_page_url(search_results_soup) is None:
