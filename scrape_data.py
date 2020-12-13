@@ -8,6 +8,7 @@ from typing import List, Tuple
 import attr
 import bs4
 import pandas as pd
+from joblib import Parallel, delayed
 
 
 class ParsingError(Exception):
@@ -94,7 +95,9 @@ def parse_layout(s: str) -> Tuple[int, bool, bool, bool, bool]:
     return n_rooms, *(char in s for char in "SLDK")
 
 
-@attr.dataclass
+# attrs does not play well with cloudpickle (required by joblib)
+# See: https://github.com/python-attrs/attrs/issues/458
+@attr.dataclass(repr=False)
 class Building:
     category: str  # 建物種別 (e.g. "アパート", "マンション")
     title: str  # e.g. "Ｂｒｉｌｌｉａｉｓｔ元浅草"
@@ -114,7 +117,7 @@ class Building:
                    parse_age(age), parse_floors(floors))
 
 
-@attr.dataclass
+@attr.dataclass(repr=False)
 class Room:
     rent: int  # 賃料 (¥)
     admin_fee: int  # 管理費 (¥)
@@ -148,7 +151,7 @@ class Room:
                    detail_href, jnc_id)
 
 
-@attr.dataclass
+@attr.dataclass(repr=False)
 class Property:
     building: Building
     room: Room
@@ -169,6 +172,7 @@ def scrape_properties_from_html_file(filename: Path) -> List[Property]:
                 print(f"Skipping property due to error: {e}")
                 continue
             properties.append(Property(building, room))
+    print(f"Scraped {filename} ({len(properties)})")
     return properties
 
 
@@ -198,13 +202,11 @@ def make_properties_dataframe(properties: List[Property]) -> pd.DataFrame:
     return pd.DataFrame(series)
 
 
-def build_df_from_data_files(filenames: List[Path]):
-    all_properties = []
-    for filename in filenames:
-        properties = scrape_properties_from_html_file(filename)
-        all_properties.extend(properties)
-        print(f"Scraped {filename} ({len(properties)}/{len(all_properties)})")
-    return make_properties_dataframe(all_properties)
+def scrape_properties(filenames: List[Path], n_jobs=1) -> List[Property]:
+    lists = Parallel(n_jobs=n_jobs)(
+        delayed(scrape_properties_from_html_file)(filename) for filename in filenames
+    )
+    return [p for sublist in lists for p in sublist]  # flatten
 
 
 if __name__ == "__main__":
@@ -216,11 +218,13 @@ if __name__ == "__main__":
                                                   "to the basename of html_dir.")
     parser.add_argument("--output-format", choices=("feather", "csv"),
                         default="csv", help="Output file format")
+    parser.add_argument("--jobs", default=1, type=int, help="Number of jobs for parallelization")
     args = parser.parse_args()
 
     html_dir = Path(args.html_dir)
     filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
-    df = build_df_from_data_files(filenames)
+    properties = scrape_properties(filenames, args.jobs)
+    df = make_properties_dataframe(properties)
 
     output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)
     output_filename = output_filename.with_suffix(f".{args.output_format}").name
