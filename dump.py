@@ -12,6 +12,11 @@ import coloredlogs
 import requests
 
 SUUMO_URL = "https://suumo.jp"
+TOKYO_SPECIAL_WARDS = (
+    "千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区",
+    "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", "中野区", "杉並区", "豊島区",
+    "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"
+)
 
 
 def setup_logger():
@@ -121,13 +126,14 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Search and dump property data from suumo")
+    parser = argparse.ArgumentParser(description="Search and dump property data of "
+                                                 "Tokyo special wards from SUUMO.")
     parser.add_argument("--dump-dir", default="dumped_data",
                         help="Directory where to dump the pages data. If the directory"
                              "does not exist, it will be created.")
-    parser.add_argument("--building-categories", nargs="*", required=True,
-                        help="Categories of buildings (e.g. 'マンション')")
-    parser.add_argument("--wards", nargs="*", required=True,
+    parser.add_argument("--building-categories", nargs="*", default=("マンション",),
+                        help="Categories of buildings (e.g. 'マンション', 'アパート')")
+    parser.add_argument("--wards", nargs="*", default=TOKYO_SPECIAL_WARDS,
                         help="Tokyo wards (e.g. '港区', '中央区')")
     parser.add_argument("--only-today", action="store_true",
                         help="Search and dump properties added today")
