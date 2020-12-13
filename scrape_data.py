@@ -163,7 +163,11 @@ def scrape_properties_from_html_file(filename: Path) -> List[Property]:
     building_tags = search_results_soup.find_all("div", class_="cassetteitem")
     properties = []
     for building_tag in building_tags:
-        building = Building.from_tag(building_tag)
+        try:
+            building = Building.from_tag(building_tag)
+        except ParsingError as e:
+            print(f"Skipping property due to error: {e}")
+            continue
         room_tags = building_tag.select("table.cassetteitem_other tbody")
         for room_tag in room_tags:
             try:
