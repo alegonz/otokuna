@@ -148,18 +148,31 @@ def main():
 
     search_url = build_search_url(building_categories=args.building_categories,
                                   wards=args.wards, only_today=args.only_today)
+    n_attempts = 3
     page = 1
     while True:
-        response = requests.get(search_url)
+        next_search_url = f"{search_url}&page={page}"
+        for attempt in range(n_attempts):
+            try:
+                response = requests.get(next_search_url)
+            except Exception as e:
+                logger.error(f"Could not fetch page {page} (attempt: {attempt}): {e}")
+                time.sleep(10)
+            else:
+                break
+        else:
+            continue
         search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
         if page == 1:
             n_pages = scrape_number_of_pages(search_results_soup)
             logger.info(f"Total result pages: {n_pages}")
-        logger.info(f"Got page {page}: {search_url}")
+        logger.info(f"Got page {page}: {next_search_url}")
+
+        # dump html data to file
         with open(dump_dir / f"page_{page:03d}.html", "w") as f:
             f.write(response.text)
-        search_url = scrape_next_page_url(search_results_soup)
-        if search_url is None:
+
+        if scrape_next_page_url(search_results_soup) is None:
             break
         page += 1
         time.sleep(args.sleep_time)
