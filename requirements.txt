@@ -2,4 +2,5 @@ attrs
 beautifulsoup4
 coloredlogs
 pandas
+pyarrow
 requests
