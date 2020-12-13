@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import attr
 import bs4
@@ -51,8 +51,12 @@ def parse_area(s: str) -> float:
     return float(_match_and_raise(pattern, s).group(1))
 
 
-def parse_layout(s: str) -> str:
-    return "1R" if s == "ワンルーム" else s
+def parse_layout(s: str) -> Tuple[int, bool, bool, bool, bool]:
+    if s == "ワンルーム":
+        return 1, False, False, False, False
+    pattern = r"(\d+)[SLDK]+"
+    n_rooms = int(_match_and_raise(pattern, s).group(1))
+    return n_rooms, *(char in s for char in "SLDK")
 
 
 @attr.dataclass
@@ -82,6 +86,11 @@ class Room:
     deposit: int  # 敷金 (¥)
     gratuity: int  # 礼金 (¥)
     layout: str  # 間取り (e.g. 1R, 2LDK)
+    n_rooms: int  # 部屋の数
+    service_room: bool  # サービスルームの有無
+    living_room: bool  # リビングの有無
+    dining_room: bool  # ダイニングの有無
+    kitchen: bool  # キッチンの有無
     area: float  # 面積 m2
     floor: int  # 階 1階~
     detail_href: str  # e.g. https://suumo.jp/chintai/jnc_000054786764/?bc=100216408055
@@ -98,11 +107,13 @@ class Room:
         floor, *_ = tag.find_all("td")[2].stripped_strings
         detail_href = tag.select_one("td.ui-text--midium.ui-text--bold a")["href"]
         jnc_id = re.search(r"jnc_([0-9]*)/", detail_href).group(1)
+        n_rooms, service_room, living_room, dining_room, kitchen = parse_layout(layout)
         return cls(parse_money(rent, unit="万円"),
                    parse_money(admin_fee, unit="円"),
                    parse_money(deposit, unit="万円"),
                    parse_money(gratuity, unit="万円"),
-                   layout, parse_area(area), parse_floor(floor),
+                   layout, n_rooms, service_room, living_room, dining_room, kitchen,
+                   parse_area(area), parse_floor(floor),
                    detail_href, jnc_id)
 
 
