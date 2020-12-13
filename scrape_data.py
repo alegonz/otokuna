@@ -53,10 +53,32 @@ def parse_money(s: str, *, unit="円") -> int:
     return int(float(_match_and_raise(pattern, s).group(1)) * multipliers_by_unit[unit])
 
 
-def parse_floor(s: str) -> int:
-    # Currently multi-floor (e.g. 2-7階) properties are not supported
-    pattern = r"(\d+)階"
-    return int(_match_and_raise(pattern, s).group(1))
+def parse_floor_range(s: str) -> Tuple[int, int]:
+    """Parse floor range (min_floor, max_floor).
+    A property may have more than one floor and it may involve basement floors.
+    We represent the floors as evenly spaced integers, so the basement floors
+    are zero-based (e.g. B1 is floor 0) to avoid a "two floor" gap between B1 and 1.
+    2階 = second floor
+    2-階 = second floor (improperly formatted)
+    3-5階 = from 3rd to 5th floor (three floors)
+    B1階 = basement 1st floor
+    B1-1階 = basement 1st floor to 1st floor
+    B2-B1階 = basement 2nd floor to basement 1st floor
+    """
+    pattern = r"(B?\d+)-?(B?\d+)?階"
+    min_floor_str, max_floor_str = _match_and_raise(pattern, s).groups()
+    if min_floor_str is None or max_floor_str is None:
+        min_floor_str = max_floor_str = min_floor_str or max_floor_str
+
+    def parse_floor(floor_str):
+        if floor_str.startswith("B"):
+            return -int(floor_str[1:]) + 1
+        return int(floor_str)
+
+    min_floor, max_floor = parse_floor(min_floor_str), parse_floor(max_floor_str)
+    # The range may be written in the inverse order e.g. 1-B1階
+    min_floor, max_floor = sorted([min_floor, max_floor])
+    return min_floor, max_floor
 
 
 def parse_area(s: str) -> float:
@@ -100,7 +122,8 @@ class Room:
     gratuity: int  # 礼金 (¥)
     layout: str  # 間取り (e.g. 1R, 2LDK)
     area: float  # 面積 m2
-    floor: int  # 階 1階~
+    min_floor: int  # min階 (e.g. 1, 2, 3. B1, B2 are 0, -1, respectively)
+    max_floor: int  # max階 (when the property covers only one floor min_floor == max_floor)
     detail_href: str  # e.g. https://suumo.jp/chintai/jnc_000054786764/?bc=100216408055
     jnc_id: str  # 物件ID e.g. "000054786764"
 
@@ -113,13 +136,15 @@ class Room:
         layout = tag.find("span", class_="cassetteitem_madori").text
         area = tag.find("span", class_="cassetteitem_menseki").text
         floor, *_ = tag.find_all("td")[2].stripped_strings
+        min_floor, max_floor = parse_floor_range(floor)
         detail_href = tag.select_one("td.ui-text--midium.ui-text--bold a")["href"]
         jnc_id = re.search(r"jnc_([0-9]*)/", detail_href).group(1)
         return cls(parse_money(rent, unit="万円"),
                    parse_money(admin_fee, unit="円"),
                    parse_money(deposit, unit="万円"),
                    parse_money(gratuity, unit="万円"),
-                   layout, parse_area(area), parse_floor(floor),
+                   layout, parse_area(area),
+                   min_floor, max_floor,
                    detail_href, jnc_id)
 
 
