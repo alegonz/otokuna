@@ -35,7 +35,10 @@ def parse_floors(s: str) -> int:
 
 
 def parse_transportation(s: str) -> float:
-    """Parse walking time to station in minutes"""
+    """Parse walking time to station in minutes. Properties that have
+    driving times (e.g. '東京メトロ東西線/行徳駅 車15分(5.1km)') are not
+    handled and will raise an error.
+    """
     pattern = r".*歩(\d+)分$"
     return float(_match_and_raise(pattern, s).group(1))
 
@@ -166,7 +169,7 @@ def scrape_properties_from_html_file(filename: Path) -> List[Property]:
         try:
             building = Building.from_tag(building_tag)
         except ParsingError as e:
-            print(f"Skipping property due to error: {e}")
+            print(f"Skipping building due to error: {e}")
             continue
         room_tags = building_tag.select("table.cassetteitem_other tbody")
         for room_tag in room_tags:
@@ -188,19 +191,23 @@ def make_properties_dataframe(properties: List[Property]) -> pd.DataFrame:
                       for key, value in attr.asdict(property_.building).items()}
         # Room features
         feat_dict_.update(attr.asdict(property_.room))
-        # Layout features
-        (feat_dict_["n_rooms"],
-         feat_dict_["service_room"],
-         feat_dict_["living_room"],
-         feat_dict_["dining_room"],
-         feat_dict_["kitchen"]) = parse_layout(property_.room.layout)
-        # Transportation features:
-        walking_times = [parse_transportation(t) for t in property_.building.transportation if t]
-        feat_dict_["n_stations"] = len(walking_times)
-        feat_dict_["walk_time_station_min"] = min(walking_times)
-        feat_dict_["walk_time_station_avg"] = mean(walking_times)
-        # Address features:
-        feat_dict_["ward"], feat_dict_["district"] = parse_address(property_.building.address)
+        try:
+            # Layout features
+            (feat_dict_["n_rooms"],
+             feat_dict_["service_room"],
+             feat_dict_["living_room"],
+             feat_dict_["dining_room"],
+             feat_dict_["kitchen"]) = parse_layout(property_.room.layout)
+            # Transportation features:
+            walking_times = [parse_transportation(t) for t in property_.building.transportation if t]
+            feat_dict_["n_stations"] = len(walking_times)
+            feat_dict_["walk_time_station_min"] = min(walking_times)
+            feat_dict_["walk_time_station_avg"] = mean(walking_times)
+            # Address features:
+            feat_dict_["ward"], feat_dict_["district"] = parse_address(property_.building.address)
+        except ParsingError as e:
+            print(f"Skipping property due to error: {e}")
+            continue
 
         series.append(pd.Series(feat_dict_))
     return pd.DataFrame(series)
