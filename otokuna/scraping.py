@@ -201,8 +201,10 @@ def make_properties_dataframe(
     series = []
     for property_ in properties:
         # Building features
-        feat_dict_ = {f"building_{key}": value
-                      for key, value in attr.asdict(property_.building).items()}
+        feat_dict_ = {
+            f"building_{key}": value
+            for key, value in attr.asdict(property_.building, retain_collection_types=True).items()
+        }
         # Room features
         feat_dict_.update(attr.asdict(property_.room))
         try:
