@@ -41,7 +41,7 @@ def _build_condition_codes(
         special_conditions: Optional[Sequence[str]] = None
 ) -> Dict[str, Set[str]]:
     response = requests.get(f"{SUUMO_URL}/chintai/tokyo/city/")
-    soup = bs4.BeautifulSoup(response.content, "html.parser")
+    soup = bs4.BeautifulSoup(response.text, "html.parser")
     condition_codes = {}
     values_by_cond_id = {
         "ts": building_categories,
