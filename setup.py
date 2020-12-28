@@ -12,7 +12,6 @@ INSTALL_REQUIRES = [
     "joblib",
     "kanjize",
     "pandas",
-    "pyarrow",
     "requests"
 ]
 EXTRAS_REQUIRE = {"dev": ["pytest"]}
