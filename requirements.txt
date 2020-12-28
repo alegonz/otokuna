@@ -4,4 +4,5 @@ coloredlogs
 joblib
 pandas
 pyarrow
+pytest
 requests
