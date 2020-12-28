@@ -116,7 +116,7 @@ def test_make_properties_dataframe():
                                           "京急本線/平和島駅 歩24分"],
                           age=34, floors=4),
         room=Room(rent=69000, admin_fee=0, deposit=69000, gratuity=69000, layout="1K", area=22.1,
-                  min_floor=3, max_floor=3, detail_href="/chintai/jnc_000060701156/?bc=100206393921",
+                  min_floor=3, max_floor=3, url=f"https://suumo.jp/chintai/jnc_000060701156/?bc=100206393921",
                   jnc_id="000060701156")
     )
 
@@ -136,7 +136,7 @@ def test_make_properties_dataframe():
             "area": [22.1],
             "min_floor": [3],
             "max_floor": [3],
-            "detail_href": ["/chintai/jnc_000060701156/?bc=100206393921"],
+            "url": ["https://suumo.jp/chintai/jnc_000060701156/?bc=100206393921"],
             "jnc_id": ["000060701156"],
             "n_rooms": [1],
             "service_room": [False],

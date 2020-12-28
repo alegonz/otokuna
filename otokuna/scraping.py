@@ -12,6 +12,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 
 from otokuna._logging import setup_logger
+from otokuna.dumping import SUUMO_URL
 
 
 class ParsingError(Exception):
@@ -133,7 +134,7 @@ class Room:
     area: float  # 面積 m2
     min_floor: int  # min階 (e.g. 1, 2, 3. B1, B2 are 0, -1, respectively)
     max_floor: int  # max階 (when the property covers only one floor min_floor == max_floor)
-    detail_href: str  # e.g. https://suumo.jp/chintai/jnc_000054786764/?bc=100216408055
+    url: str  # e.g. https://suumo.jp/chintai/jnc_000054786764/?bc=100216408055
     jnc_id: str  # 物件ID e.g. "000054786764"
 
     @classmethod
@@ -147,6 +148,7 @@ class Room:
         floor, *_ = tag.find_all("td")[2].stripped_strings
         min_floor, max_floor = parse_floor_range(floor)
         detail_href = tag.select_one("td.ui-text--midium.ui-text--bold a")["href"]
+        url = f"{SUUMO_URL}{detail_href}"
         jnc_id = re.search(r"jnc_([0-9]*)/", detail_href).group(1)
         return cls(parse_money(rent, unit="万円"),
                    parse_money(admin_fee, unit="円"),
@@ -154,7 +156,7 @@ class Room:
                    parse_money(gratuity, unit="万円"),
                    layout, parse_area(area),
                    min_floor, max_floor,
-                   detail_href, jnc_id)
+                   url, jnc_id)
 
 
 @attr.dataclass(repr=False)
