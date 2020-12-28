@@ -150,6 +150,6 @@ def test_make_properties_dataframe():
             "district": ["中央"],
         },
         orient="columns"
-    )
+    ).set_index("jnc_id", drop=True)
     actual = make_properties_dataframe([property_])
     pd.testing.assert_frame_equal(actual, expected)

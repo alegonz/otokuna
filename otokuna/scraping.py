@@ -223,7 +223,9 @@ def make_properties_dataframe(
             continue
 
         series.append(pd.Series(feat_dict_))
-    return pd.DataFrame(series)
+    df = pd.DataFrame(series)
+    df.set_index("jnc_id", drop=True, inplace=True)
+    return df
 
 
 def _scrape_properties(
