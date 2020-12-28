@@ -42,7 +42,7 @@ def parse_transportation(s: str) -> float:
     driving times (e.g. '東京メトロ東西線/行徳駅 車15分(5.1km)') are not
     handled and will raise an error.
     """
-    pattern = r".*歩(\d+)分$"
+    pattern = r".*歩(\d+)分$"  # TODO: should capture '.+' instead at the start
     return float(_match_and_raise(pattern, s).group(1))
 
 
