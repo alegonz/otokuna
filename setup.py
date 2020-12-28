@@ -9,7 +9,6 @@ PYTHON_REQUIRES = ">=3.5"
 INSTALL_REQUIRES = [
     "attrs",
     "beautifulsoup4",
-    "coloredlogs",
     "joblib",
     "pandas",
     "pyarrow",
