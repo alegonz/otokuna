@@ -1,8 +1,0 @@
-attrs
-beautifulsoup4
-coloredlogs
-joblib
-pandas
-pyarrow
-pytest
-requests
