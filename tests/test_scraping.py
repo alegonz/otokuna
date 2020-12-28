@@ -125,7 +125,7 @@ def test_make_properties_dataframe():
             "building_category": ["賃貸マンション"],
             "building_title": ["セントラルメゾン"],
             "building_address": ["東京都大田区中央１"],
-            "building_transportation": [["ＪＲ京浜東北線/大森駅 バス7分 (バス停)臼田坂下 歩1分", "都営浅草線/西馬込駅 歩18分", "京急本線/平和島駅 歩24分"]],
+            "building_transportation": [("ＪＲ京浜東北線/大森駅 バス7分 (バス停)臼田坂下 歩1分", "都営浅草線/西馬込駅 歩18分", "京急本線/平和島駅 歩24分")],
             "building_age": [34],
             "building_floors": [4],
             "rent": [69000],
