@@ -220,7 +220,7 @@ def scrape_properties(filenames: List[Path], n_jobs=1) -> List[Property]:
     return [p for sublist in lists for p in sublist]  # flatten
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser(description="Scrape property data from paged html files "
                                         "and make a dataframe. The dataframe is stored "
                                         "in feather format.")
@@ -231,15 +231,17 @@ if __name__ == "__main__":
                         default="csv", help="Output file format")
     parser.add_argument("--jobs", default=1, type=int, help="Number of jobs for parallelization")
     args = parser.parse_args()
-
     html_dir = Path(args.html_dir)
     filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
     properties = scrape_properties(filenames, args.jobs)
     df = make_properties_dataframe(properties)
-
     output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)
     output_filename = output_filename.with_suffix(f".{args.output_format}").name
     if args.output_format == "feather":
         df.to_feather(output_filename)
     else:  # args.output_format == "csv"
         df.to_csv(output_filename)
+
+
+if __name__ == "__main__":
+    main()
