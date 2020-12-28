@@ -249,7 +249,7 @@ def scrape_properties():
     parser.add_argument("html_dir", help="Path to html data. It can also be a folder with html data.")
     parser.add_argument("--output-filename", help="Output filename. By default it is set "
                                                   "to the basename of html_dir.")
-    parser.add_argument("--output-format", choices=("feather", "csv"),
+    parser.add_argument("--output-format", choices=("csv", "feather", "pickle"),
                         default="csv", help="Output file format")
     parser.add_argument("--jobs", default=1, type=int, help="Number of jobs for parallelization")
     args = parser.parse_args()
@@ -262,7 +262,9 @@ def scrape_properties():
 
     output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)
     output_filename = output_filename.with_suffix(f".{args.output_format}").name
-    if args.output_format == "feather":
-        df.to_feather(output_filename)
-    else:  # args.output_format == "csv"
+    if args.output_format == "csv":
         df.to_csv(output_filename)
+    elif args.output_format == "feather":
+        df.to_feather(output_filename)
+    else:  # args.output_format == "pickle"
+        df.to_pickle(output_filename)
