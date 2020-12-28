@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
+import logging
 import re
 from argparse import ArgumentParser
 from pathlib import Path
 from statistics import mean
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import attr
 import bs4
 import pandas as pd
 from joblib import Parallel, delayed
+
+from otokuna._logging import setup_logger
 
 
 class ParsingError(Exception):
@@ -160,7 +163,11 @@ class Property:
     room: Room
 
 
-def scrape_properties_from_html_file(filename: Path) -> List[Property]:
+def scrape_properties_from_html_file(
+        filename: Path, logger: Optional[logging.Logger] = None
+) -> List[Property]:
+    logger = logger or logging.getLogger("dummy")
+
     with open(filename, "r") as file:
         search_results_soup = bs4.BeautifulSoup(file, "html.parser")
     building_tags = search_results_soup.find_all("div", class_="cassetteitem")
@@ -169,21 +176,25 @@ def scrape_properties_from_html_file(filename: Path) -> List[Property]:
         try:
             building = Building.from_tag(building_tag)
         except ParsingError as e:
-            print(f"Skipping building due to error: {e}")
+            logger.info(f"Skipping building due to error: {e}")
             continue
         room_tags = building_tag.select("table.cassetteitem_other tbody")
         for room_tag in room_tags:
             try:
                 room = Room.from_tag(room_tag)
             except ParsingError as e:
-                print(f"Skipping property due to error: {e}")
+                logger.info(f"Skipping property due to error: {e}")
                 continue
             properties.append(Property(building, room))
-    print(f"Scraped {filename} ({len(properties)})")
+    logger.info(f"Scraped {filename} ({len(properties)})")
     return properties
 
 
-def make_properties_dataframe(properties: List[Property]) -> pd.DataFrame:
+def make_properties_dataframe(
+        properties: List[Property], logger: Optional[logging.Logger] = None
+) -> pd.DataFrame:
+    logger = logger or logging.getLogger('dummy')
+
     series = []
     for property_ in properties:
         # Building features
@@ -206,21 +217,25 @@ def make_properties_dataframe(properties: List[Property]) -> pd.DataFrame:
             # Address features:
             feat_dict_["ward"], feat_dict_["district"] = parse_address(property_.building.address)
         except ParsingError as e:
-            print(f"Skipping property due to error: {e}")
+            logger.info(f"Skipping property due to error: {e}")
             continue
 
         series.append(pd.Series(feat_dict_))
     return pd.DataFrame(series)
 
 
-def _scrape_properties(filenames: List[Path], n_jobs=1) -> List[Property]:
+def _scrape_properties(
+        filenames: List[Path], n_jobs=1, logger: Optional[logging.Logger] = None
+) -> List[Property]:
     lists = Parallel(n_jobs=n_jobs)(
-        delayed(scrape_properties_from_html_file)(filename) for filename in filenames
+        delayed(scrape_properties_from_html_file)(filename, logger) for filename in filenames
     )
     return [p for sublist in lists for p in sublist]  # flatten
 
 
 def scrape_properties():
+    logger = setup_logger("scrape-properties")
+
     parser = ArgumentParser(description="Scrape property data from paged html files "
                                         "and make a dataframe. The dataframe is stored "
                                         "in feather format.")
@@ -231,10 +246,13 @@ def scrape_properties():
                         default="csv", help="Output file format")
     parser.add_argument("--jobs", default=1, type=int, help="Number of jobs for parallelization")
     args = parser.parse_args()
+
     html_dir = Path(args.html_dir)
     filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
-    properties = _scrape_properties(filenames, args.jobs)
-    df = make_properties_dataframe(properties)
+
+    properties = _scrape_properties(filenames, args.jobs, logger)
+    df = make_properties_dataframe(properties, logger)
+
     output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)
     output_filename = output_filename.with_suffix(f".{args.output_format}").name
     if args.output_format == "feather":

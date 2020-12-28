@@ -2,14 +2,14 @@
 
 import argparse
 import datetime
-import logging
 import time
 from pathlib import Path
 from typing import Optional, Sequence, Dict, Set
 
 import bs4
-import coloredlogs
 import requests
+
+from otokuna._logging import setup_logger
 
 SUUMO_URL = "https://suumo.jp"
 TOKYO_SPECIAL_WARDS = (
@@ -19,22 +19,7 @@ TOKYO_SPECIAL_WARDS = (
 )
 
 
-def setup_logger(filename):
-    logger = logging.getLogger("dump")
-    loglevel = logging.INFO
-    logger.setLevel(loglevel)
-    logger.addHandler(logging.StreamHandler())
-    log_format = "%(asctime)s.%(msecs)03d %(name)s[%(process)d] %(levelname)s %(message)s"
-
-    file_handler = logging.FileHandler(filename)
-    file_handler.setFormatter(logging.Formatter(log_format))
-    logger.addHandler(file_handler)
-
-    coloredlogs.install(level=loglevel, logger=logger, fmt=log_format, datefmt="%Y-%m-%dT%H:%M:%S%z")
-    return logger
-
-
-def now_jst_isoformat():
+def _now_jst_isoformat():
     """Returns the current datetime in JST in ISO format (dropping milliseconds)."""
     timezone_jst = datetime.timezone(datetime.timedelta(hours=+9), "JST")
     now = datetime.datetime.now(tz=timezone_jst)
@@ -141,10 +126,10 @@ def dump_properties():
                         help="Time to sleep between fetches of result pages")
 
     args = parser.parse_args()
-    datetime_str = now_jst_isoformat()
+    datetime_str = _now_jst_isoformat()
     dump_dir = Path(f"{args.dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
-    logger = setup_logger(dump_dir / "dump.log")
+    logger = setup_logger("dump-properties", dump_dir / "dump.log")
 
     search_url = build_search_url(building_categories=args.building_categories,
                                   wards=args.wards, only_today=args.only_today)
