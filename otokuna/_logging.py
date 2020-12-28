@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-_LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
 
 
 class _Iso8601Formatter(logging.Formatter):
@@ -9,7 +9,7 @@ class _Iso8601Formatter(logging.Formatter):
     If includes the milliseconds and the local timezone.
     """
     def formatTime(self, record, datefmt=None):
-        dt = datetime.datetime.fromtimestamp(record.created, tz=_LOCAL_TIMEZONE)
+        dt = datetime.datetime.fromtimestamp(record.created, tz=LOCAL_TIMEZONE)
         return dt.isoformat(timespec="milliseconds")
 
 

@@ -9,7 +9,7 @@ from typing import Optional, Sequence, Dict, Set
 import bs4
 import requests
 
-from otokuna._logging import setup_logger
+from otokuna._logging import setup_logger, LOCAL_TIMEZONE
 
 SUUMO_URL = "https://suumo.jp"
 TOKYO_SPECIAL_WARDS = (
@@ -19,10 +19,9 @@ TOKYO_SPECIAL_WARDS = (
 )
 
 
-def _now_jst_isoformat():
+def _now_isoformat():
     """Returns the current datetime in JST in ISO format (dropping milliseconds)."""
-    timezone_jst = datetime.timezone(datetime.timedelta(hours=+9), "JST")
-    now = datetime.datetime.now(tz=timezone_jst)
+    now = datetime.datetime.now(tz=LOCAL_TIMEZONE)
     return now.isoformat(timespec="seconds")
 
 
@@ -126,7 +125,7 @@ def dump_properties():
                         help="Time to sleep between fetches of result pages")
 
     args = parser.parse_args()
-    datetime_str = _now_jst_isoformat()
+    datetime_str = _now_isoformat()
     dump_dir = Path(f"{args.dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
     logger = setup_logger("dump-properties", dump_dir / "dump.log")
