@@ -125,7 +125,7 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
     return f"{SUUMO_URL}{next_elem.parent['href']}" if next_elem else None
 
 
-def main():
+def dump_properties():
     parser = argparse.ArgumentParser(description="Search and dump property data of "
                                                  "Tokyo special wards from SUUMO.")
     parser.add_argument("--dump-dir", default="dumped_data",
@@ -176,7 +176,3 @@ def main():
             break
         page += 1
         time.sleep(args.sleep_time)
-
-
-if __name__ == "__main__":
-    main()

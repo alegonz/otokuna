@@ -18,8 +18,8 @@ INSTALL_REQUIRES = [
 EXTRAS_REQUIRE = {"dev": ["pytest"]}
 ENTRY_POINTS = {
     "console_scripts": [
-        "dump-properties=otokuna.dumping:main",
-        "scrape-properties=otokuna.scraping:main",
+        "dump-properties=otokuna.dumping:dump_properties",
+        "scrape-properties=otokuna.scraping:scrape_properties",
     ]
 }
 LICENSE = "MIT"
