@@ -10,6 +10,7 @@ INSTALL_REQUIRES = [
     "attrs",
     "beautifulsoup4",
     "joblib",
+    "kanjize",
     "pandas",
     "pyarrow",
     "requests"
