@@ -1,4 +1,5 @@
-include Makefile.venv
+WORKDIR:=..
+include ../Makefile.venv
 
 .PHONY: setup
 setup: venv
