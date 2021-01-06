@@ -109,29 +109,15 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
     return f"{SUUMO_URL}{next_elem.parent['href']}" if next_elem else None
 
 
-def dump_properties():
-    parser = argparse.ArgumentParser(description="Search and dump property data of "
-                                                 "Tokyo special wards from SUUMO.")
-    parser.add_argument("--dump-dir", default="dumped_data",
-                        help="Directory where to dump the pages data. If the directory"
-                             "does not exist, it will be created.")
-    parser.add_argument("--building-categories", nargs="*", default=("マンション",),
-                        help="Categories of buildings (e.g. 'マンション', 'アパート')")
-    parser.add_argument("--wards", nargs="*", default=TOKYO_SPECIAL_WARDS,
-                        help="Tokyo wards (e.g. '港区', '中央区')")
-    parser.add_argument("--only-today", action="store_true",
-                        help="Search and dump properties added today")
-    parser.add_argument("--sleep-time", default=2,
-                        help="Time to sleep between fetches of result pages")
-
-    args = parser.parse_args()
+def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Sequence[str],
+                    only_today: bool, sleep_time: float):
     datetime_str = _now_isoformat()
-    dump_dir = Path(f"{args.dump_dir}/{datetime_str}")
+    dump_dir = Path(f"{dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
     logger = setup_logger("dump-properties", dump_dir / "dump.log")
 
-    search_url = build_search_url(building_categories=args.building_categories,
-                                  wards=args.wards, only_today=args.only_today)
+    search_url = build_search_url(building_categories=building_categories,
+                                  wards=wards, only_today=only_today)
     n_attempts = 3
     page = 1
     while True:
@@ -159,4 +145,23 @@ def dump_properties():
         if scrape_next_page_url(search_results_soup) is None:
             break
         page += 1
-        time.sleep(args.sleep_time)
+        time.sleep(sleep_time)
+
+
+def _main():
+    parser = argparse.ArgumentParser(description="Search and dump property data of "
+                                                 "Tokyo special wards from SUUMO.")
+    parser.add_argument("--dump-dir", default="dumped_data",
+                        help="Directory where to dump the pages data. If the directory"
+                             "does not exist, it will be created.")
+    parser.add_argument("--building-categories", nargs="*", default=("マンション",),
+                        help="Categories of buildings (e.g. 'マンション', 'アパート')")
+    parser.add_argument("--wards", nargs="*", default=TOKYO_SPECIAL_WARDS,
+                        help="Tokyo wards (e.g. '港区', '中央区')")
+    parser.add_argument("--only-today", action="store_true",
+                        help="Search and dump properties added today")
+    parser.add_argument("--sleep-time", default=2,
+                        help="Time to sleep between fetches of result pages")
+
+    args = parser.parse_args()
+    dump_properties(**vars(args))

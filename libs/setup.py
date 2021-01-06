@@ -17,7 +17,7 @@ INSTALL_REQUIRES = [
 EXTRAS_REQUIRE = {"dev": ["pytest"]}
 ENTRY_POINTS = {
     "console_scripts": [
-        "dump-properties=otokuna.dumping:dump_properties",
+        "dump-properties=otokuna.dumping:_main",
         "scrape-properties=otokuna.scraping:scrape_properties",
     ]
 }
