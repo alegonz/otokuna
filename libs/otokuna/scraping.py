@@ -11,8 +11,8 @@ import bs4
 import pandas as pd
 from joblib import Parallel, delayed
 
+from otokuna import SUUMO_URL
 from otokuna._logging import setup_logger
-from otokuna.dumping import SUUMO_URL
 
 
 class ParsingError(Exception):

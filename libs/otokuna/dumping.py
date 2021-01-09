@@ -9,9 +9,9 @@ from typing import Optional, Sequence, Dict, Set
 import bs4
 import requests
 
+from otokuna import SUUMO_URL
 from otokuna._logging import setup_logger, LOCAL_TIMEZONE
 
-SUUMO_URL = "https://suumo.jp"
 TOKYO_SPECIAL_WARDS = (
     "千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区",
     "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", "中野区", "杉並区", "豊島区",
