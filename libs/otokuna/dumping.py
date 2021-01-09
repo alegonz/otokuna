@@ -2,9 +2,10 @@
 
 import argparse
 import datetime
+import logging
 import time
 from pathlib import Path
-from typing import Optional, Sequence, Dict, Set
+from typing import Optional, Sequence, Dict, Set, Tuple, Iterator
 
 import bs4
 import requests
@@ -109,13 +110,14 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
     return f"{SUUMO_URL}{next_elem.parent['href']}" if next_elem else None
 
 
-def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Sequence[str],
-                    only_today: bool, sleep_time: float):
-    datetime_str = _now_isoformat()
-    dump_dir = Path(f"{dump_dir}/{datetime_str}")
-    dump_dir.mkdir(parents=True)
-    logger = setup_logger("dump-properties", dump_dir / "dump.log")
-
+def iter_search_results(building_categories: Sequence[str], wards: Sequence[str],
+                        only_today: bool, sleep_time: float,
+                        logger=Optional[logging.Logger]) -> Iterator[Tuple[int, requests.Response]]:
+    """Iterates over the search results pages from the given search conditions.
+    Each iteration yields a tuple with the page number (one-indexed) and the
+    response object of the search results page.
+    """
+    logger = logger or logging.getLogger('dummy')
     search_url = build_search_url(building_categories=building_categories,
                                   wards=wards, only_today=only_today)
     n_attempts = 3
@@ -138,14 +140,29 @@ def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Se
             logger.info(f"Total result pages: {n_pages}")
         logger.info(f"Got page {page}: {next_search_url}")
 
-        # dump html data to file
-        with open(dump_dir / f"page_{page:06d}.html", "w") as f:
-            f.write(response.text)
+        yield page, response
 
         if scrape_next_page_url(search_results_soup) is None:
             break
         page += 1
         time.sleep(sleep_time)
+
+
+def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Sequence[str],
+                    only_today: bool, sleep_time: float):
+    """Dump the search results of property data to files, searched according to
+    the given conditions. It dumps each search result page on a separate file.
+    The data is written in a sub-folder named from the current timestamp in the
+    given dump_dir.
+    """
+    datetime_str = _now_isoformat()
+    dump_dir = Path(f"{dump_dir}/{datetime_str}")
+    dump_dir.mkdir(parents=True)
+    logger = setup_logger("dump-properties", dump_dir / "dump.log")
+    for page, response in iter_search_results(building_categories, wards, only_today, sleep_time, logger):
+        # dump html data to file
+        with open(dump_dir / f"page_{page:06d}.html", "w") as f:
+            f.write(response.text)
 
 
 def _main():
