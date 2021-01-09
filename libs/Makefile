@@ -1,5 +1,5 @@
-WORKDIR:=..
-include ../Makefile.venv
+HERE:=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(HERE)/../Makefile
 
 .PHONY: setup
 setup: venv
