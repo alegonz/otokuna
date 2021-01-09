@@ -6,6 +6,9 @@ PROJECT_URL = "https://github.com/alegonz/otokuna"
 AUTHOR = "Alejandro González Tineo"
 AUTHOR_EMAIL = "alejandrojgt@gmail.com"
 PYTHON_REQUIRES = ">=3.5"
+# TODO: Split package into a namespace package with at least 3 packages:
+#  commons, dumper, scraper
+#  This will allow to package only the necessary dependency for each app service
 INSTALL_REQUIRES = [
     "attrs",
     "beautifulsoup4",
