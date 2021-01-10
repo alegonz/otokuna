@@ -177,7 +177,7 @@ def _main():
                         help="Tokyo wards (e.g. '港区', '中央区')")
     parser.add_argument("--only-today", action="store_true",
                         help="Search and dump properties added today")
-    parser.add_argument("--sleep-time", default=2,
+    parser.add_argument("--sleep-time", default=2, type=float,
                         help="Time to sleep between fetches of result pages")
 
     args = parser.parse_args()
