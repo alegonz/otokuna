@@ -10,7 +10,11 @@ from otokuna.logging import setup_logger
 
 def dump_property_data(event, context):
     dump_bucket = os.environ["outputBucket"]
-    logger = setup_logger("dump-svc")
+    # AWS Lambda already includes timestamps in the logs
+    logger = setup_logger("dump-svc", include_timestamp=False)
+    # Avoid duplicated logs
+    # See: https://forum.serverless.com/t/python-lambda-logging-duplication-workaround/1585/6
+    logger.propagate = False
     iterator = iter_search_results(
         building_categories=("マンション",),
         wards=TOKYO_SPECIAL_WARDS,
