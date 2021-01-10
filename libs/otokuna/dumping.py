@@ -19,6 +19,9 @@ TOKYO_SPECIAL_WARDS = (
     "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"
 )
 
+# TODO: Consider bundling the 全国地方公共団体コード data to assert code-ward codes.
+#   See: https://www.soumu.go.jp/denshijiti/code.html
+
 
 def now_isoformat():
     """Returns the current datetime in JST in ISO format (dropping milliseconds)."""
