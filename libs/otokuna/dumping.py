@@ -11,7 +11,7 @@ import bs4
 import requests
 
 from otokuna import SUUMO_URL
-from otokuna._logging import setup_logger, LOCAL_TIMEZONE
+from otokuna.logging import setup_logger, LOCAL_TIMEZONE
 
 TOKYO_SPECIAL_WARDS = (
     "千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区",
@@ -20,7 +20,7 @@ TOKYO_SPECIAL_WARDS = (
 )
 
 
-def _now_isoformat():
+def now_isoformat():
     """Returns the current datetime in JST in ISO format (dropping milliseconds)."""
     now = datetime.datetime.now(tz=LOCAL_TIMEZONE)
     return now.isoformat(timespec="seconds")
@@ -155,7 +155,7 @@ def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Se
     The data is written in a sub-folder named from the current timestamp in the
     given dump_dir.
     """
-    datetime_str = _now_isoformat()
+    datetime_str = now_isoformat()
     dump_dir = Path(f"{dump_dir}/{datetime_str}")
     dump_dir.mkdir(parents=True)
     logger = setup_logger("dump-properties", dump_dir / "dump.log")

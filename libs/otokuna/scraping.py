@@ -12,7 +12,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 
 from otokuna import SUUMO_URL
-from otokuna._logging import setup_logger
+from otokuna.logging import setup_logger
 
 
 class ParsingError(Exception):
