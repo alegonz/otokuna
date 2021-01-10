@@ -1,0 +1,7 @@
+{
+  "name": "dump-svc",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-python-requirements": "^5.1.0"
+  }
+}

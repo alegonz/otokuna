@@ -1,0 +1,55 @@
+service: dump-svc
+app: otokuna
+# org: is passed via command-line arg
+
+frameworkVersion: "2"
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    pythonBin: ../../.venv/bin/python3
+    dockerizePip: non-linux
+    slim: true
+  # every day at 12:00 UTC == 21:00 JST
+  rate: cron(0 12 * * ? *)
+  outputBucket: ${file(params.yml):outputBucket}
+
+provider:
+  name: aws
+  runtime: python3.8
+  lambdaHashingVersion: 20201221
+  stage: dev
+  region: us-east-1
+  timeout: 900  # 15 min. max of AWS Lambda is 15 min
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:PutObjectAcl
+      Resource: "arn:aws:s3:::${self:custom.outputBucket}/*"
+
+package:
+  exclude:
+    - "**/*"
+  include:
+    - handler.py
+
+functions:
+  dump_property_data:
+    handler: handler.dump_property_data
+    events:
+      - schedule: ${self:custom.rate}
+      # TODO: Run 23 functions (one for each ward) in parallel.
+      #  This also likely requires using Step functions to ensure that the same folder
+      #  is used by all functions, and that the predict service executes after all functions
+      #  finished.
+      # - schedule:
+      #     rate: ${self:custom.rate}
+      #     input:
+      #       ward: 千代田区
+    environment:
+      outputBucket: ${self:custom.outputBucket}
+    # TODO: consider limiting the number of attempts
+    # maximumRetryAttempts: 1
