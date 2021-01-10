@@ -13,10 +13,12 @@ class _Iso8601Formatter(logging.Formatter):
         return dt.isoformat(timespec="milliseconds")
 
 
-def setup_logger(name, filename=None):
+def setup_logger(name, filename=None, include_timestamp=True):
     logger = logging.getLogger(name)
     loglevel = logging.INFO
-    logformat = "%(asctime)s %(name)s[%(process)d] %(levelname)s %(message)s"
+    logformat = "%(name)s[%(process)d] %(levelname)s %(message)s"
+    if include_timestamp:
+        logformat = "%(asctime)s " + logformat
     logger.setLevel(loglevel)
     formatter = _Iso8601Formatter(logformat)
 
