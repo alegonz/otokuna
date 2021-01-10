@@ -22,7 +22,6 @@ provider:
   lambdaHashingVersion: 20201221
   stage: dev
   region: us-east-1
-  timeout: 900  # 15 min. max of AWS Lambda is 15 min
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -39,6 +38,7 @@ package:
 functions:
   dump_property_data:
     handler: handler.dump_property_data
+    timeout: 900  # 15 min. max of AWS Lambda is 15 min
     memorySize: 256  # empirically observed value of 154 MB + leeway
     events:
       - schedule: ${self:custom.rate}
