@@ -39,6 +39,7 @@ package:
 functions:
   dump_property_data:
     handler: handler.dump_property_data
+    memorySize: 256  # empirically observed value of 154 MB + leeway
     events:
       - schedule: ${self:custom.rate}
       # TODO: Run 23 functions (one for each ward) in parallel.
