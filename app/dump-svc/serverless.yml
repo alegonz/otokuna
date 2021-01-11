@@ -9,6 +9,8 @@ plugins:
   - serverless-step-functions
 
 custom:
+  # TODO: Package requirements independently
+  #  The S3 path generator should be lightweight
   pythonRequirements:
     pythonBin: ../../.venv/bin/python3
     dockerizePip: non-linux
@@ -23,6 +25,7 @@ provider:
   lambdaHashingVersion: 20201221
   stage: dev
   region: us-east-1
+  # TODO: This role should be limited only to the dump_property_data function
   iamRoleStatements:
     - Effect: Allow
       Action:
