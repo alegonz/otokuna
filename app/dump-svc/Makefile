@@ -22,12 +22,19 @@ endif
 STAGE?=dev
 SERVERLESS_ARGS=--stage $(STAGE) --org $(SERVERLESS_ORG)
 
+# It is safer to clean the cache of serverless-python-requirements
+# to avoid missing packaging changes to the libs.
+.PHONY: _clean_sls_py_req
+_clean_sls_py_req: | serverless
+	sls requirements clean $(SERVERLESS_ARGS)
+	sls requirements cleanCache $(SERVERLESS_ARGS)
+
 .PHONY: package
-package: _sls_deps
+package: _sls_deps _clean_sls_py_req
 	sls package $(SERVERLESS_ARGS)
 
 .PHONY: _sls_deps
-deploy: _sls_deps
+deploy: _sls_deps _clean_sls_py_req
 	sls deploy $(SERVERLESS_ARGS)
 
 .PHONY: remove
