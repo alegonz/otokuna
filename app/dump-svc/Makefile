@@ -29,3 +29,7 @@ package: _sls_deps
 .PHONY: _sls_deps
 deploy: _sls_deps
 	sls deploy $(SERVERLESS_ARGS)
+
+.PHONY: remove
+remove: | serverless
+	sls remove $(SERVERLESS_ARGS)
