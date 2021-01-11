@@ -6,6 +6,7 @@ frameworkVersion: "2"
 
 plugins:
   - serverless-python-requirements
+  - serverless-step-functions
 
 custom:
   pythonRequirements:
