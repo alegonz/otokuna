@@ -33,28 +33,56 @@ provider:
         - s3:PutObjectAcl
       Resource: "arn:aws:s3:::${self:custom.outputBucket}/*"
 
+# TODO: package individually
 package:
   exclude:
     - "**/*"
   include:
     - dump_property_data.py
+    - generate_base_path.py
 
 functions:
+  generate_base_path:
+    handler: generate_base_path.main
+    memorySize: 128
   dump_property_data:
     handler: dump_property_data.main
     timeout: 900  # 15 min. max of AWS Lambda is 15 min
     memorySize: 256  # empirically observed value of 154 MB + leeway
-    events:
-      - schedule: ${self:custom.rate}
-      # TODO: Run 23 functions (one for each ward) in parallel.
-      #  This also likely requires using Step functions to ensure that the same folder
-      #  is used by all functions, and that the predict service executes after all functions
-      #  finished.
-      # - schedule:
-      #     rate: ${self:custom.rate}
-      #     input:
-      #       ward: 千代田区
-    environment:
-      outputBucket: ${self:custom.outputBucket}
     # TODO: consider limiting the number of attempts
     # maximumRetryAttempts: 1
+
+stepFunctions:
+  stateMachines:
+    PropertyDumpMachine:
+      events:
+        - schedule:
+            rate: ${self:custom.rate}
+            input:
+              output_bucket: ${self:custom.outputBucket}
+              tokyo_wards: ${file(params.yml):tokyoWards}
+      definition:
+        Comment: "A state machine that dumps property data in parallel"
+        StartAt: GenerateBasePath
+        States:
+          GenerateBasePath:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [generate_base_path, Arn]
+            Next: DumpMap
+          DumpMap:
+            Type: Map
+            ItemsPath: $.tokyo_wards
+            Parameters:
+              ward.$: $$.Map.Item.Value
+              output_bucket.$: $.output_bucket
+              base_path.$: $.base_path
+            Iterator:
+              StartAt: Dump
+              States:
+                Dump:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [dump_property_data, Arn]
+                  End: true
+            End: true
