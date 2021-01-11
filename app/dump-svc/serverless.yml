@@ -27,13 +27,13 @@ custom:
     slim: true
   # every day at 12:00 UTC == 21:00 JST
   rate: cron(0 12 * * ? *)
-  output_bucket: ${file(params.yml):output_bucket}
+  output_bucket: ${file(params.yml):output_bucket}-${opt:stage}
 
 provider:
   name: aws
   runtime: python3.8
   lambdaHashingVersion: 20201221
-  stage: dev
+  stage: ${opt:stage}
   region: us-east-1
   # TODO: This role should be limited only to the dump_property_data function
   iamRoleStatements:

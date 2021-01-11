@@ -16,10 +16,16 @@ _sls_deps: requirements.txt | serverless
 #  Could be done via a target that requires a plugins.in file that and generates
 #  the package-lock.json file.
 
+ifndef SERVERLESS_ORG
+$(error SERVERLESS_ORG is not set)
+endif
+STAGE?=dev
+SERVERLESS_ARGS=--stage $(STAGE) --org $(SERVERLESS_ORG)
+
 .PHONY: package
 package: _sls_deps
-	sls package --org $(SERVERLESS_ORG)
+	sls package $(SERVERLESS_ARGS)
 
 .PHONY: _sls_deps
 deploy: _sls_deps
-	sls deploy --org $(SERVERLESS_ORG)
+	sls deploy $(SERVERLESS_ARGS)
