@@ -1,3 +1,13 @@
+# Notes on capitalization and style:
+# * camelCase is used for Serverless parameters (including plugins)
+#   - e.g. frameworkVersion, iamRoleStatements, stepFunctions
+# * CamelUpperCase is used for AWS parameters
+#   - e.g. ItemsPath parameter of AWS step
+# * snake_case for application-specific parameters:
+#   - e.g. output_bucket, function and step names
+#   - Notable exception is the service name, because Serverless does not
+#     support underscores in it.
+
 service: dump-svc
 app: otokuna
 # org: is passed via command-line arg
@@ -17,7 +27,7 @@ custom:
     slim: true
   # every day at 12:00 UTC == 21:00 JST
   rate: cron(0 12 * * ? *)
-  outputBucket: ${file(params.yml):outputBucket}
+  output_bucket: ${file(params.yml):output_bucket}
 
 provider:
   name: aws
@@ -31,7 +41,7 @@ provider:
       Action:
         - s3:PutObject
         - s3:PutObjectAcl
-      Resource: "arn:aws:s3:::${self:custom.outputBucket}/*"
+      Resource: "arn:aws:s3:::${self:custom.output_bucket}/*"
 
 # TODO: package individually
 package:
@@ -54,23 +64,23 @@ functions:
 
 stepFunctions:
   stateMachines:
-    PropertyDumpMachine:
+    property_dump_machine:
       events:
         - schedule:
             rate: ${self:custom.rate}
             input:
-              output_bucket: ${self:custom.outputBucket}
-              tokyo_wards: ${file(params.yml):tokyoWards}
+              output_bucket: ${self:custom.output_bucket}
+              tokyo_wards: ${file(params.yml):tokyo_wards}
       definition:
         Comment: "A state machine that dumps property data in parallel"
-        StartAt: GenerateBasePath
+        StartAt: generate_base_path_step
         States:
-          GenerateBasePath:
+          generate_base_path_step:
             Type: Task
             Resource:
               Fn::GetAtt: [generate_base_path, Arn]
-            Next: DumpMap
-          DumpMap:
+            Next: dump_map_step
+          dump_map_step:
             Type: Map
             ItemsPath: $.tokyo_wards
             Parameters:
@@ -78,9 +88,9 @@ stepFunctions:
               output_bucket.$: $.output_bucket
               base_path.$: $.base_path
             Iterator:
-              StartAt: Dump
+              StartAt: dump_step
               States:
-                Dump:
+                dump_step:
                   Type: Task
                   Resource:
                     Fn::GetAtt: [dump_property_data, Arn]
