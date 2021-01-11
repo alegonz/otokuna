@@ -8,7 +8,7 @@ from otokuna.dumping import now_isoformat, iter_search_results, TOKYO_SPECIAL_WA
 from otokuna.logging import setup_logger
 
 
-def dump_property_data(event, context):
+def main(event, context):
     dump_bucket = os.environ["outputBucket"]
     # AWS Lambda already includes timestamps in the logs
     logger = setup_logger("dump-svc", include_timestamp=False)

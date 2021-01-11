@@ -7,7 +7,7 @@ requirements.txt: requirements.in | $(PIP_COMPILE)
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) -q -o - $< | sed 's/^-e //' > $@
 
 .PHONY: _sls_deps
-_sls_deps: serverless.yml handler.py requirements.txt | serverless
+_sls_deps: serverless.yml dump_property_data.py requirements.txt | serverless
 
 # TODO:
 #  Add installation of the following plugins:

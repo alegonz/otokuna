@@ -37,11 +37,11 @@ package:
   exclude:
     - "**/*"
   include:
-    - handler.py
+    - dump_property_data.py
 
 functions:
   dump_property_data:
-    handler: handler.dump_property_data
+    handler: dump_property_data.main
     timeout: 900  # 15 min. max of AWS Lambda is 15 min
     memorySize: 256  # empirically observed value of 154 MB + leeway
     events:
