@@ -57,7 +57,7 @@ functions:
     memorySize: 128
   dump_property_data:
     handler: dump_property_data.main
-    timeout: 900  # 15 min. max of AWS Lambda is 15 min
+    timeout: 300  # 5 min. max of AWS Lambda is 15 min
     memorySize: 256  # empirically observed value of 154 MB + leeway
     # TODO: consider limiting the number of attempts
     # maximumRetryAttempts: 1
