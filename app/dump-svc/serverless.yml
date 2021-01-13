@@ -1,12 +1,14 @@
 # Notes on capitalization and style:
-# * camelCase is used for Serverless parameters (including plugins)
+# * camelCase for Serverless parameters (including plugins)
 #   - e.g. frameworkVersion, iamRoleStatements, stepFunctions
-# * CamelUpperCase is used for AWS parameters
+# * CamelUpperCase for AWS parameters
 #   - e.g. ItemsPath parameter of AWS step
+# * CamelUpperCase for state machines and states
+#   - e.g. DumpMachine, DumpMap
 # * snake_case for application-specific parameters:
-#   - e.g. output_bucket, function and step names
-#   - Notable exception is the service name, because Serverless does not
-#     support underscores in it.
+#   - e.g. output_bucket
+# * kebab-case for service and function names
+#   - e.g. dump-svc, generate-base-path
 
 service: dump-svc
 app: otokuna
@@ -52,10 +54,10 @@ package:
     - generate_base_path.py
 
 functions:
-  generate_base_path:
+  generate-base-path:
     handler: generate_base_path.main
     memorySize: 128
-  dump_property_data:
+  dump-property-data:
     handler: dump_property_data.main
     timeout: 300  # 5 min. max of AWS Lambda is 15 min
     memorySize: 256  # empirically observed value of 154 MB + leeway
@@ -64,7 +66,7 @@ functions:
 
 stepFunctions:
   stateMachines:
-    property_dump_machine:
+    DumpMachine:
       events:
         - schedule:
             rate: ${self:custom.rate}
@@ -73,14 +75,14 @@ stepFunctions:
               tokyo_wards: ${file(params.yml):tokyo_wards}
       definition:
         Comment: "A state machine that dumps property data in parallel"
-        StartAt: generate_base_path_step
+        StartAt: GenerateBasePath
         States:
-          generate_base_path_step:
+          GenerateBasePath:
             Type: Task
             Resource:
-              Fn::GetAtt: [generate_base_path, Arn]
-            Next: dump_map_step
-          dump_map_step:
+              Fn::GetAtt: [generate-base-path, Arn]
+            Next: DumpMap
+          DumpMap:
             Type: Map
             ItemsPath: $.tokyo_wards
             Parameters:
@@ -93,6 +95,6 @@ stepFunctions:
                 dump_step:
                   Type: Task
                   Resource:
-                    Fn::GetAtt: [dump_property_data, Arn]
+                    Fn::GetAtt: [dump-property-data, Arn]
                   End: true
             End: true
