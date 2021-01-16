@@ -27,9 +27,14 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
 def _build_address_kanji(address: str) -> str:
     """Translate a Suumo address to an all-kanji representation.
     For example: 東京都渋谷区恵比寿南１ --> 東京都渋谷区恵比寿南一丁目
+
+    Returns an empty string if the address could not be parsed.
     """
     pattern = r"(東京都)(.+区)(\D+)(\d*)"  # e.g. "東京都渋谷区恵比寿南１", "東京都渋谷区神泉町"
-    prefecture, ward, district, street_number = re.match(pattern, address).groups()
+    match = re.match(pattern, address)
+    if not match:
+        return ""
+    prefecture, ward, district, street_number = match.groups()
     street_number_jp = f"{int2kanji(int(street_number))}丁目" if street_number else ""
 
     # For some reason the data provided by 国土交通省 位置参照情報 ダウンロードサービス
@@ -57,4 +62,4 @@ def add_address_coords(df: pd.DataFrame) -> pd.DataFrame:
 
     tokyo_df = tokyo_df[["latitude", "longitude", "join_key"]]
     tokyo_df.set_index("join_key", inplace=True)
-    return df.join(tokyo_df, on="join_key", how="inner").drop(columns="join_key")
+    return df.join(tokyo_df, on="join_key", how="left").drop(columns="join_key")
