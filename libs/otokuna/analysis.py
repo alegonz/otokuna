@@ -53,7 +53,10 @@ def _build_address_kanji(address: str) -> str:
 
 
 def add_address_coords(df: pd.DataFrame) -> pd.DataFrame:
-    """TODO"""
+    """Add latitude/longitude coordinates to each property (rows) in
+    the given dataframe. The coordinates are obtained by looking up
+    the building address in the location reference data for Tokyo.
+    """
     filepath = DATA_DIR / "location_reference_tokyo" / "13_2019.csv"
     tokyo_df = pd.read_csv(filepath, encoding="sjis")
     tokyo_df.rename(columns={"緯度": "latitude", "経度": "longitude"}, inplace=True)
