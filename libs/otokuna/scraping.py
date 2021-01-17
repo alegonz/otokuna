@@ -27,6 +27,7 @@ def _match_and_raise(pattern, string):
 
 
 def parse_age(s: str) -> int:
+    """Parse the age of the building in years"""
     if s == "新築":
         return 0
     pattern = r"築(\d+)年"
@@ -34,6 +35,9 @@ def parse_age(s: str) -> int:
 
 
 def parse_floors(s: str) -> int:
+    """Parse number of floors of the building.
+    Note: it only parses number of floors above the ground.
+    """
     pattern = r"(地下\d+地上)?(\d+)階建"
     return int(_match_and_raise(pattern, s).group(2))
 
@@ -54,6 +58,10 @@ def parse_address(s: str) -> Tuple[str, str]:
 
 
 def parse_money(s: str, *, unit="円") -> int:
+    """Parse amount of money en JPY.
+    The unit of string ("円" or "万円") can be chosen the to apply
+    the appropriate conversion to JPY units.
+    """
     if s == "-":
         return 0
     multipliers_by_unit = {"円": 1, "万円": 10000}
@@ -90,11 +98,19 @@ def parse_floor_range(s: str) -> Tuple[int, int]:
 
 
 def parse_area(s: str) -> float:
+    """Parse the room's surface area in m2"""
     pattern = r"(\d*[.]?\d+)m2"
     return float(_match_and_raise(pattern, s).group(1))
 
 
 def parse_layout(s: str) -> Tuple[int, bool, bool, bool, bool]:
+    """Parse layout of the room. It returns a tuple of five elements:
+    0. Number of rooms (int)
+    1. Has service room? (bool)
+    2. Has living room? (bool)
+    3. Has dining room? (bool)
+    4. Has kitchen? (bool)
+    """
     if s == "ワンルーム":
         return 1, False, False, False, False
     pattern = r"(\d+)[SLDK]+"
@@ -169,6 +185,7 @@ class Property:
 def scrape_properties_from_file(
         filename: Path, logger: Optional[logging.Logger] = None
 ) -> List[Property]:
+    """Scrape properties from given html file."""
     logger = logger or logging.getLogger("dummy")
 
     with open(filename, "r") as file:
@@ -196,6 +213,7 @@ def scrape_properties_from_file(
 def make_properties_dataframe(
         properties: List[Property], logger: Optional[logging.Logger] = None
 ) -> pd.DataFrame:
+    """Make a dataframe from the given properties"""
     logger = logger or logging.getLogger('dummy')
 
     series = []
@@ -234,6 +252,10 @@ def make_properties_dataframe(
 def scrape_properties_from_files(
         filenames: List[Path], n_jobs=1, logger: Optional[logging.Logger] = None
 ) -> List[Property]:
+    """Scrape properties from several files. It supports parallel processing via
+    the `n_jobs` argument. Pass n_jobs=-1 to use all CPU cores (defaults to 1 core).
+    It returns a flattened list with the properties scraped from all files.
+    """
     lists = Parallel(n_jobs=n_jobs)(
         delayed(scrape_properties_from_file)(filename, logger) for filename in filenames
     )
