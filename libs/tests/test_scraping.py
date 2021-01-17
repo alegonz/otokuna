@@ -111,9 +111,9 @@ def test_parse_transportation(transportation, expected):
 def test_make_properties_dataframe():
     property_ = Property(
         building=Building(category="賃貸マンション", title="セントラルメゾン", address="東京都大田区中央１",
-                          transportation=["ＪＲ京浜東北線/大森駅 バス7分 (バス停)臼田坂下 歩1分",
+                          transportation=("ＪＲ京浜東北線/大森駅 バス7分 (バス停)臼田坂下 歩1分",
                                           "都営浅草線/西馬込駅 歩18分",
-                                          "京急本線/平和島駅 歩24分"],
+                                          "京急本線/平和島駅 歩24分"),
                           age=34, floors=4),
         room=Room(rent=69000, admin_fee=0, deposit=69000, gratuity=69000, layout="1K", area=22.1,
                   min_floor=3, max_floor=3, url=f"https://suumo.jp/chintai/jnc_000060701156/?bc=100206393921",

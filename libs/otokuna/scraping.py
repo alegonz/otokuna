@@ -109,7 +109,7 @@ class Building:
     category: str  # 建物種別 (e.g. "アパート", "マンション")
     title: str  # e.g. "Ｂｒｉｌｌｉａｉｓｔ元浅草"
     address: str  # e.g. "東京都台東区元浅草１"
-    transportation: Tuple[str]  # e.g. ("都営大江戸線/新御徒町駅 歩4分", ...)
+    transportation: Tuple[str, ...]  # e.g. ("都営大江戸線/新御徒町駅 歩4分", ...)
     age: int  # years (新築 is casted to 0)
     floors: int  # floors (e.g. "11階建")
 
