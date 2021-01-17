@@ -2,9 +2,11 @@
 import logging
 import re
 from argparse import ArgumentParser
+from contextlib import ExitStack
 from pathlib import Path
 from statistics import mean
 from typing import List, Tuple, Optional
+from zipfile import is_zipfile, ZipFile
 
 import attr
 import bs4
@@ -183,13 +185,25 @@ class Property:
 
 
 def scrape_properties_from_file(
-        filename: Path, logger: Optional[logging.Logger] = None
+        filename: Path,
+        zip_filename: Optional[Path] = None,
+        logger: Optional[logging.Logger] = None
 ) -> List[Property]:
-    """Scrape properties from given html file."""
+    """Scrape properties from given html file.
+    The file may be contained in a zip archive, in which case the filename is
+    treated as a filename within the zip archive and you must pass a path to the
+    zip file that contains the file.
+    """
     logger = logger or logging.getLogger("dummy")
 
-    with open(filename, "r") as file:
-        search_results_soup = bs4.BeautifulSoup(file, "html.parser")
+    with ExitStack() as stack:
+        if zip_filename is not None:
+            zfile = stack.enter_context(ZipFile(zip_filename))
+            open_func = zfile.open
+        else:
+            open_func = open
+        with open_func(str(filename)) as file:
+            search_results_soup = bs4.BeautifulSoup(file, "html.parser")
     building_tags = search_results_soup.find_all("div", class_="cassetteitem")
     properties = []
     for building_tag in building_tags:
@@ -208,6 +222,28 @@ def scrape_properties_from_file(
             properties.append(Property(building, room))
     logger.info(f"Scraped {filename} ({len(properties)})")
     return properties
+
+
+def scrape_properties_from_files(
+        filenames: List[Path],
+        zip_filename: Optional[Path] = None,
+        logger: Optional[logging.Logger] = None,
+        n_jobs: int = 1
+) -> List[Property]:
+    """Scrape properties from several files.
+
+    The files may be contained in a zip archive, in which case the filenames are
+    treated as filenames within the zip archive and you must pass a path to the
+    zip file that contains the files.
+
+    This function supports parallel processing via the `n_jobs` argument. Pass
+    n_jobs=-1 to use all CPU cores (defaults to 1 core). It returns a flattened
+    list with the properties scraped from all files.
+    """
+    lists = Parallel(n_jobs=n_jobs)(
+        delayed(scrape_properties_from_file)(filename, zip_filename, logger) for filename in filenames
+    )
+    return [p for sublist in lists for p in sublist]  # flatten
 
 
 def make_properties_dataframe(
@@ -249,19 +285,6 @@ def make_properties_dataframe(
     return df
 
 
-def scrape_properties_from_files(
-        filenames: List[Path], n_jobs=1, logger: Optional[logging.Logger] = None
-) -> List[Property]:
-    """Scrape properties from several files. It supports parallel processing via
-    the `n_jobs` argument. Pass n_jobs=-1 to use all CPU cores (defaults to 1 core).
-    It returns a flattened list with the properties scraped from all files.
-    """
-    lists = Parallel(n_jobs=n_jobs)(
-        delayed(scrape_properties_from_file)(filename, logger) for filename in filenames
-    )
-    return [p for sublist in lists for p in sublist]  # flatten
-
-
 def _main():
     logger = setup_logger("scrape-properties")
 
@@ -276,9 +299,17 @@ def _main():
     args = parser.parse_args()
 
     html_dir = Path(args.html_dir)
-    filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
+    if is_zipfile(html_dir):
+        with ZipFile(html_dir) as zfile:
+            filenames = [Path(zi.filename) for zi in zfile.infolist()
+                         if not zi.is_dir() and zi.filename.endswith(".html")]
+        zip_filename = html_dir
+    else:
+        filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
+        zip_filename = None
 
-    properties = scrape_properties_from_files(filenames, args.jobs, logger)
+    properties = scrape_properties_from_files(filenames, zip_filename, logger=logger, n_jobs=args.jobs)
+
     df = make_properties_dataframe(properties, logger)
 
     output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)

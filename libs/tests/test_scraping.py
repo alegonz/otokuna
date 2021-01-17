@@ -1,3 +1,4 @@
+import zipfile
 from functools import partial
 from pathlib import Path
 
@@ -112,8 +113,20 @@ def test_parse_transportation(transportation, expected):
     assert_parse(parse_transportation, transportation, expected)
 
 
-def test_scrape_properties_from_file():
-    properties = scrape_properties_from_file(DATA_DIR / "results_first_page.html")
+@pytest.mark.parametrize("zipped", [False, True])
+def test_scrape_properties_from_file(zipped, tmp_path):
+    html_filename = DATA_DIR / "results_first_page.html"
+    if zipped:
+        # Create temporary zip file with data
+        zip_filename = tmp_path / "html_data.zip"
+        zip_arcname = html_filename.relative_to(html_filename.parent)  # trick to get name as a Path
+        with zipfile.ZipFile(zip_filename, "w") as zf:
+            zf.write(html_filename, zip_arcname)
+
+        properties = scrape_properties_from_file(zip_arcname, zip_filename)
+    else:
+        properties = scrape_properties_from_file(html_filename)
+
     expected_first = Property(
         building=Building(
             category="賃貸マンション",
