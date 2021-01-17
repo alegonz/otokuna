@@ -315,8 +315,12 @@ def _main():
 
     df = make_properties_dataframe(properties, logger)
 
-    output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)
-    output_filename = output_filename.with_suffix(f".{args.output_format}").name
+    if not args.output_filename:
+        output_filename = Path(args.html_dir)
+        output_filename = output_filename.with_suffix(f".{args.output_format}").name
+    else:
+        output_filename = args.output_filename
+
     if args.output_format == "csv":
         df.to_csv(output_filename)
     else:  # args.output_format == "pickle"
