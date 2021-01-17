@@ -106,7 +106,7 @@ def parse_layout(s: str) -> Tuple[int, bool, bool, bool, bool]:
 # See: https://github.com/python-attrs/attrs/issues/458
 @attr.dataclass(repr=False)
 class Building:
-    category: str  # 建物種別 (e.g. "アパート", "マンション")
+    category: str  # 建物種別 (e.g. "アパート", "賃貸マンション")
     title: str  # e.g. "Ｂｒｉｌｌｉａｉｓｔ元浅草"
     address: str  # e.g. "東京都台東区元浅草１"
     transportation: Tuple[str, ...]  # e.g. ("都営大江戸線/新御徒町駅 歩4分", ...)
@@ -166,7 +166,7 @@ class Property:
     room: Room
 
 
-def scrape_properties_from_html_file(
+def scrape_properties_from_file(
         filename: Path, logger: Optional[logging.Logger] = None
 ) -> List[Property]:
     logger = logger or logging.getLogger("dummy")
@@ -231,16 +231,16 @@ def make_properties_dataframe(
     return df
 
 
-def _scrape_properties(
+def scrape_properties_from_files(
         filenames: List[Path], n_jobs=1, logger: Optional[logging.Logger] = None
 ) -> List[Property]:
     lists = Parallel(n_jobs=n_jobs)(
-        delayed(scrape_properties_from_html_file)(filename, logger) for filename in filenames
+        delayed(scrape_properties_from_file)(filename, logger) for filename in filenames
     )
     return [p for sublist in lists for p in sublist]  # flatten
 
 
-def scrape_properties():
+def _main():
     logger = setup_logger("scrape-properties")
 
     parser = ArgumentParser(description="Scrape property data from paged html files "
@@ -256,7 +256,7 @@ def scrape_properties():
     html_dir = Path(args.html_dir)
     filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
 
-    properties = _scrape_properties(filenames, args.jobs, logger)
+    properties = scrape_properties_from_files(filenames, args.jobs, logger)
     df = make_properties_dataframe(properties, logger)
 
     output_filename = Path(args.html_dir) if not args.output_filename else Path(args.output_filename)

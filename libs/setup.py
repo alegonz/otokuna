@@ -21,7 +21,7 @@ EXTRAS_REQUIRE = {"dev": ["pytest"]}
 ENTRY_POINTS = {
     "console_scripts": [
         "dump-properties=otokuna.dumping:_main",
-        "scrape-properties=otokuna.scraping:scrape_properties",
+        "scrape-properties=otokuna.scraping:_main",
     ]
 }
 LICENSE = "MIT"

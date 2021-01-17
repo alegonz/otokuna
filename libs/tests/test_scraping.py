@@ -1,4 +1,5 @@
 from functools import partial
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -7,8 +8,11 @@ from _pytest.python_api import RaisesContext
 from otokuna.scraping import (
     parse_address, parse_age, parse_area, parse_floor_range,
     parse_floors, parse_layout, parse_money, parse_transportation,
-    ParsingError, Property, Building, Room, make_properties_dataframe
+    make_properties_dataframe, scrape_properties_from_file,
+    ParsingError, Property, Building, Room,
 )
+
+DATA_DIR = Path(__file__).parent / "data"
 
 
 def assert_parse(func, input_, expected):
@@ -106,6 +110,57 @@ def test_parse_money(money, unit, expected):
 ])
 def test_parse_transportation(transportation, expected):
     assert_parse(parse_transportation, transportation, expected)
+
+
+def test_scrape_properties_from_file():
+    properties = scrape_properties_from_file(DATA_DIR / "results_first_page.html")
+    expected_first = Property(
+        building=Building(
+            category="賃貸マンション",
+            title="スカイコート池袋第7",
+            address="東京都豊島区上池袋１",
+            transportation=("ＪＲ山手線/池袋駅 歩14分", "ＪＲ山手線/大塚駅 歩12分", "ＪＲ埼京線/板橋駅 歩12分"),
+            age=14,
+            floors=11
+        ),
+        room=Room(
+            rent=77300,
+            admin_fee=6200,
+            deposit=77300,
+            gratuity=77300,
+            layout="1K",
+            area=20.35,
+            min_floor=5,
+            max_floor=5,
+            url="https://suumo.jp/chintai/jnc_000062096181/?bc=100220224172",
+            jnc_id="000062096181"
+        )
+    )
+    expected_last = Property(
+        building=Building(
+            category="賃貸マンション",
+            title="エスコート・チエ",
+            address="東京都江戸川区北小岩３",
+            transportation=("京成本線/江戸川駅 歩3分", "ＪＲ総武線/小岩駅 歩17分", "京成本線/国府台駅 歩15分"),
+            age=16,
+            floors=2
+        ),
+        room=Room(
+            rent=87000,
+            admin_fee=3000,
+            deposit=87000,
+            gratuity=87000,
+            layout="1LDK",
+            area=41.74,
+            min_floor=1,
+            max_floor=1,
+            url="https://suumo.jp/chintai/jnc_000062620201/?bc=100210051791",
+            jnc_id="000062620201"
+        )
+    )
+    assert len(properties) == 198
+    assert properties[0] == expected_first
+    assert properties[-1] == expected_last
 
 
 def test_make_properties_dataframe():
