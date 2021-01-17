@@ -301,11 +301,14 @@ def _main():
     html_dir = Path(args.html_dir)
     if is_zipfile(html_dir):
         with ZipFile(html_dir) as zfile:
-            filenames = [Path(zi.filename) for zi in zfile.infolist()
-                         if not zi.is_dir() and zi.filename.endswith(".html")]
+            filenames = sorted(Path(zi.filename) for zi in zfile.infolist()
+                               if not zi.is_dir() and zi.filename.endswith(".html"))
         zip_filename = html_dir
     else:
-        filenames = sorted(html_dir.glob("*.html")) if html_dir.is_dir() else [html_dir]
+        if html_dir.is_dir():
+            filenames = sorted(p for p in html_dir.glob("*.html") if not p.is_dir())
+        else:
+            filenames = [html_dir]
         zip_filename = None
 
     properties = scrape_properties_from_files(filenames, zip_filename, logger=logger, n_jobs=args.jobs)
