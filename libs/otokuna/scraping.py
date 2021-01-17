@@ -244,8 +244,7 @@ def scrape_properties():
     logger = setup_logger("scrape-properties")
 
     parser = ArgumentParser(description="Scrape property data from paged html files "
-                                        "and make a dataframe. The dataframe is stored "
-                                        "in feather format.")
+                                        "and make a dataframe.")
     parser.add_argument("html_dir", help="Path to html data. It can also be a folder with html data.")
     parser.add_argument("--output-filename", help="Output filename. By default it is set "
                                                   "to the basename of html_dir.")
