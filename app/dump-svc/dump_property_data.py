@@ -32,6 +32,5 @@ def main(event, context):
     for page, response in iterator:
         fileobj = io.BytesIO(response.content)
         path = str(dump_path / f"page_{page:06d}.html")
-        # path = str(base_path / ward / f"page_{page:06d}.html")
         s3_client.upload_fileobj(fileobj, output_bucket, str(path))
         logger.info(f"Saved to s3 page {page}: {path}")
