@@ -17,7 +17,9 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
     - number of rooms (e.g. 12)
     - building age (e.g. 99 years)
 
-    TODO: remove by rent? (there are some outrageously expensive properties)
+    TODO:
+      - remove by rent? (there are some outrageously expensive properties)
+      - remove properties with high admin_fee/rent ratio
     """
     outlier_flag = False
     for col in ("area", "n_rooms", "building_age"):
