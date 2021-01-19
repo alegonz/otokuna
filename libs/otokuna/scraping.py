@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import logging
+import pathlib
 import re
+import zipfile
 from argparse import ArgumentParser
 from contextlib import ExitStack
-from pathlib import Path
 from statistics import mean
-from typing import List, Tuple, Optional
-from zipfile import is_zipfile, ZipFile
+from typing import List, Tuple, Optional, Union
 
 import attr
 import bs4
@@ -185,25 +185,18 @@ class Property:
 
 
 def scrape_properties_from_file(
-        filename: Path,
-        zip_filename: Optional[Path] = None,
+        filename: Union[pathlib.Path, zipfile.Path],
         logger: Optional[logging.Logger] = None
 ) -> List[Property]:
     """Scrape properties from given html file.
-    The file may be contained in a zip archive, in which case the filename is
-    treated as a filename within the zip archive and you must pass a path to the
-    zip file that contains the file.
+    filename may be a path to a html file or zipfile.Path objects specifying the
+    location of the html file within a zipfile.
     """
     logger = logger or logging.getLogger("dummy")
 
-    with ExitStack() as stack:
-        if zip_filename is not None:
-            zfile = stack.enter_context(ZipFile(zip_filename))
-            open_func = zfile.open
-        else:
-            open_func = open
-        with open_func(str(filename)) as file:
-            search_results_soup = bs4.BeautifulSoup(file, "html.parser")
+    with filename.open() as file:
+        search_results_soup = bs4.BeautifulSoup(file, "html.parser")
+
     building_tags = search_results_soup.find_all("div", class_="cassetteitem")
     properties = []
     for building_tag in building_tags:
@@ -225,23 +218,21 @@ def scrape_properties_from_file(
 
 
 def scrape_properties_from_files(
-        filenames: List[Path],
-        zip_filename: Optional[Path] = None,
+        filenames: List[Union[pathlib.Path, zipfile.Path]],
         logger: Optional[logging.Logger] = None,
         n_jobs: int = 1
 ) -> List[Property]:
     """Scrape properties from several files.
 
-    The files may be contained in a zip archive, in which case the filenames are
-    treated as filenames within the zip archive and you must pass a path to the
-    zip file that contains the files.
+    The filenames may be paths to html files or zipfile.Path objects specifying the
+    location of the html file within a zipfile.
 
     This function supports parallel processing via the `n_jobs` argument. Pass
     n_jobs=-1 to use all CPU cores (defaults to 1 core). It returns a flattened
     list with the properties scraped from all files.
     """
     lists = Parallel(n_jobs=n_jobs)(
-        delayed(scrape_properties_from_file)(filename, zip_filename, logger) for filename in filenames
+        delayed(scrape_properties_from_file)(filename, logger) for filename in filenames
     )
     return [p for sublist in lists for p in sublist]  # flatten
 
@@ -298,25 +289,24 @@ def _main():
     parser.add_argument("--jobs", default=1, type=int, help="Number of jobs for parallelization")
     args = parser.parse_args()
 
-    html_dir = Path(args.html_dir)
-    if is_zipfile(html_dir):
-        with ZipFile(html_dir) as zfile:
-            filenames = sorted(Path(zi.filename) for zi in zfile.infolist()
+    html_dir = pathlib.Path(args.html_dir)
+    with ExitStack() as stack:
+        if zipfile.is_zipfile(html_dir):
+            zfile = stack.enter_context(zipfile.ZipFile(html_dir))
+            filenames = sorted(zi.filename for zi in zfile.infolist()
                                if not zi.is_dir() and zi.filename.endswith(".html"))
-        zip_filename = html_dir
-    else:
-        if html_dir.is_dir():
+            filenames = [zipfile.Path(zfile, at=f) for f in filenames]
+        elif html_dir.is_dir():
             filenames = sorted(p for p in html_dir.glob("*.html") if not p.is_dir())
         else:
             filenames = [html_dir]
-        zip_filename = None
 
-    properties = scrape_properties_from_files(filenames, zip_filename, logger=logger, n_jobs=args.jobs)
+        properties = scrape_properties_from_files(filenames, n_jobs=args.jobs)
 
     df = make_properties_dataframe(properties, logger)
 
     if not args.output_filename:
-        output_filename = Path(args.html_dir)
+        output_filename = pathlib.Path(args.html_dir)
         output_filename = output_filename.with_suffix(f".{args.output_format}").name
     else:
         output_filename = args.output_filename

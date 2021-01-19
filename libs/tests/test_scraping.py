@@ -119,11 +119,12 @@ def test_scrape_properties_from_file(zipped, tmp_path):
     if zipped:
         # Create temporary zip file with data
         zip_filename = tmp_path / "html_data.zip"
-        zip_arcname = html_filename.relative_to(html_filename.parent)  # trick to get name as a Path
+        zip_arcname = html_filename.name
         with zipfile.ZipFile(zip_filename, "w") as zf:
             zf.write(html_filename, zip_arcname)
 
-        properties = scrape_properties_from_file(zip_arcname, zip_filename)
+        filename = zipfile.Path(str(zip_filename), zip_arcname)
+        properties = scrape_properties_from_file(filename)
     else:
         properties = scrape_properties_from_file(html_filename)
 
