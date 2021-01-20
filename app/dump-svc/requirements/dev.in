@@ -1,0 +1,3 @@
+-c svc.txt
+# boto3 is not required for deployment but it is useful for development (autocomplete, docs, etc)
+boto3

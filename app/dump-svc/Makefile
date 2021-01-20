@@ -1,13 +1,13 @@
 HERE:=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 include $(HERE)/../Makefile
 
-requirements.txt: requirements.in | $(PIP_COMPILE)
+requirements/%.txt: requirements/%.in | $(PIP_COMPILE)
 	# TODO: upgrade serverless-python-requirements to >=5.1.1 to avoid sed workaround.
 	#   See: https://github.com/UnitedIncome/serverless-python-requirements/issues/36
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) -q -o - $< | sed 's/^-e //' > $@
 
 .PHONY: _sls_deps
-_sls_deps: requirements.txt | serverless
+_sls_deps: requirements/svc.txt | serverless
 
 # TODO:
 #  Add installation of the following plugins:
