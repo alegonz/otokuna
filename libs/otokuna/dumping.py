@@ -115,7 +115,7 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
 
 def iter_search_results(building_categories: Sequence[str], wards: Sequence[str],
                         only_today: bool, sleep_time: float,
-                        logger=Optional[logging.Logger]) -> Iterator[Tuple[int, requests.Response]]:
+                        logger: Optional[logging.Logger] = None) -> Iterator[Tuple[int, requests.Response]]:
     """Iterates over the search results pages from the given search conditions.
     Each iteration yields a tuple with the page number (one-indexed) and the
     response object of the search results page.
