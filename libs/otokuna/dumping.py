@@ -137,7 +137,7 @@ def iter_search_results(building_categories: Sequence[str], wards: Sequence[str]
             else:
                 break
         else:
-            continue
+            raise RuntimeError(f"Could not get: {next_search_url}")
         search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
         if page == 1:
             n_pages = scrape_number_of_pages(search_results_soup)

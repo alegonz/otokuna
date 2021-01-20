@@ -7,7 +7,7 @@ import pytest
 from otokuna.dumping import (
     _get_condition_codes_by_value, _build_condition_codes,
     build_search_url, scrape_number_of_pages, scrape_next_page_url,
-    SUUMO_TOKYO_SEARCH_URL
+    iter_search_results, SUUMO_TOKYO_SEARCH_URL
 )
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -90,3 +90,29 @@ def test_scrape_next_page_url(page_filename, expected):
     with open(DATA_DIR / page_filename) as f:
         search_results_soup = bs4.BeautifulSoup(f, "html.parser")
     assert scrape_next_page_url(search_results_soup) == expected
+
+
+def test_iter_search_results(monkeypatch):
+    html_files_by_url = {
+        "dummyurl&page=1": "results_first_page.html",
+        "dummyurl&page=2": "results_last_page.html"
+    }
+    monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
+    monkeypatch.setattr("otokuna.dumping.build_search_url", lambda **_: "dummyurl")
+    monkeypatch.setattr("otokuna.dumping.time.sleep", lambda _: _)
+
+    for page, response in iter_search_results(("マンション",), ("中央区",), True, 2):
+        pass
+    assert page == 2
+
+
+def test_iter_search_results_fail(monkeypatch):
+    def mock_requests_get_fail(url):
+        raise Exception
+    monkeypatch.setattr("otokuna.dumping.requests.get", mock_requests_get_fail)
+    monkeypatch.setattr("otokuna.dumping.build_search_url", lambda **_: "dummyurl")
+    monkeypatch.setattr("otokuna.dumping.time.sleep", lambda _: _)
+
+    with pytest.raises(RuntimeError):
+        for page, response in iter_search_results(("マンション",), ("中央区",), True, 2):
+            pass
