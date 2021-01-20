@@ -18,6 +18,7 @@ TOKYO_SPECIAL_WARDS = (
     "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", "中野区", "杉並区", "豊島区",
     "北区", "荒川区", "板橋区", "練馬区", "足立区", "葛飾区", "江戸川区"
 )
+SUUMO_TOKYO_SEARCH_URL = f"{SUUMO_URL}/chintai/tokyo/city/"
 
 # TODO: Consider bundling the 全国地方公共団体コード data to assert code-ward codes.
 #   See: https://www.soumu.go.jp/denshijiti/code.html
@@ -44,7 +45,7 @@ def _build_condition_codes(
         wards: Optional[Sequence[str]] = None,
         special_conditions: Optional[Sequence[str]] = None
 ) -> Dict[str, Set[str]]:
-    response = requests.get(f"{SUUMO_URL}/chintai/tokyo/city/")
+    response = requests.get(SUUMO_TOKYO_SEARCH_URL)
     soup = bs4.BeautifulSoup(response.text, "html.parser")
     condition_codes = {}
     values_by_cond_id = {

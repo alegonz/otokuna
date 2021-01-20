@@ -6,7 +6,8 @@ import pytest
 
 from otokuna.dumping import (
     _get_condition_codes_by_value, _build_condition_codes,
-    build_search_url, scrape_number_of_pages, scrape_next_page_url
+    build_search_url, scrape_number_of_pages, scrape_next_page_url,
+    SUUMO_TOKYO_SEARCH_URL
 )
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -16,14 +17,16 @@ EXPECTED_CODES_BY_VALUE = json.loads(
 )
 
 
-def mock_requests_get(url):
-    class MockResponse:
-        def __init__(self, text):
-            self.text = text
+def build_mock_requests_get(html_files_by_url):
+    def mock_requests_get(url):
+        class MockResponse:
+            def __init__(self, text):
+                self.text = text
 
-    with open(DATA_DIR / "chintai_tokyo_search_page.html") as f:
-        response = MockResponse(f.read())
-    return response
+        with open(DATA_DIR / html_files_by_url[url]) as f:
+            response = MockResponse(f.read())
+        return response
+    return mock_requests_get
 
 
 @pytest.mark.parametrize("cond_id", ["ts", "sc", "tc"])
@@ -34,15 +37,8 @@ def test_get_condition_codes_by_value(cond_id):
 
 
 def test_build_condition_codes(monkeypatch):
-    def mock_requests_get(url):
-        class MockResponse:
-            def __init__(self, text):
-                self.text = text
-        with open(DATA_DIR / "chintai_tokyo_search_page.html") as f:
-            response = MockResponse(f.read())
-        return response
-
-    monkeypatch.setattr("otokuna.dumping.requests.get", mock_requests_get)
+    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: "chintai_tokyo_search_page.html"}
+    monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
 
     expected = {
         "ts": {"1"},
@@ -53,7 +49,8 @@ def test_build_condition_codes(monkeypatch):
 
 
 def test_build_condition_codes_invalid_value(monkeypatch):
-    monkeypatch.setattr("otokuna.dumping.requests.get", mock_requests_get)
+    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: "chintai_tokyo_search_page.html"}
+    monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
 
     expected_error_msg = "invalid values for condition sc: {'あいうえお区'}"
     with pytest.raises(RuntimeError, match=expected_error_msg):
@@ -61,7 +58,9 @@ def test_build_condition_codes_invalid_value(monkeypatch):
 
 
 def test_build_search_url(monkeypatch):
-    monkeypatch.setattr("otokuna.dumping.requests.get", mock_requests_get)
+    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: "chintai_tokyo_search_page.html"}
+    monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
+
     search_url = build_search_url(building_categories=["マンション"],
                                   wards=["中央区", "渋谷区"],
                                   only_today=True)
