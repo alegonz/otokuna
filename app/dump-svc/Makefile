@@ -6,6 +6,14 @@ requirements/%.txt: requirements/%.in | $(PIP_COMPILE)
 	#   See: https://github.com/UnitedIncome/serverless-python-requirements/issues/36
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) -q -o - $< | sed 's/^-e //' > $@
 
+.PHONY: setup
+setup: venv
+	$(VENV)/pip install -r requirements/svc.txt -r requirements/dev.txt
+
+.PHONY: test
+test: venv
+	$(VENV)/pytest .
+
 .PHONY: _sls_deps
 _sls_deps: requirements/svc.txt | serverless
 
