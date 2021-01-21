@@ -1,3 +1,7 @@
+# TODO: Consider disabling automatic installation of requirements files
+#   and setup.py in Makefile.venv, and instead do the installation explicitly.
+REQUIREMENTS_TXT=requirements/svc.txt requirements/dev.txt
+
 HERE:=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 include $(HERE)/../Makefile
 
@@ -5,10 +9,6 @@ requirements/%.txt: requirements/%.in | $(PIP_COMPILE)
 	# TODO: upgrade serverless-python-requirements to >=5.1.1 to avoid sed workaround.
 	#   See: https://github.com/UnitedIncome/serverless-python-requirements/issues/36
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) -q -o - $< | sed 's/^-e //' > $@
-
-.PHONY: setup
-setup: venv
-	$(VENV)/pip install -r requirements/svc.txt -r requirements/dev.txt
 
 .PHONY: test
 test: venv
