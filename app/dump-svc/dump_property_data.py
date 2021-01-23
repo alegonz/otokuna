@@ -8,11 +8,7 @@ from otokuna.logging import setup_logger
 
 
 def main(event, context):
-    # AWS Lambda already includes timestamps in the logs
-    logger = setup_logger("dump-svc", include_timestamp=False)
-    # Avoid duplicated logs
-    # See: https://forum.serverless.com/t/python-lambda-logging-duplication-workaround/1585/6
-    logger.propagate = False
+    logger = setup_logger("dump-svc", include_timestamp=False, propagate=False)
 
     ward = event["ward"]
     output_bucket = event["output_bucket"]

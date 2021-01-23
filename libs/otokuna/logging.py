@@ -13,7 +13,18 @@ class _Iso8601Formatter(logging.Formatter):
         return dt.isoformat(timespec="milliseconds")
 
 
-def setup_logger(name, filename=None, include_timestamp=True):
+def setup_logger(name, filename=None, include_timestamp=True, propagate=True):
+    """Setup logger
+    :param name: Name of the logger.
+    :param filename: Pass a filename to log to a file too (default is None
+        which does not log to a file).
+    :param include_timestamp: Whether to include timestamps or not. Set to False when
+        logging from AWS Lambda because it already includes timestamps in the logs.
+    :param propagate: Whether to propagate to parent loggers or not. Set to False to
+        avoid duplicated logs in Lambda.
+        See: https://forum.serverless.com/t/python-lambda-logging-duplication-workaround/1585/6
+    :return: logger
+    """
     logger = logging.getLogger(name)
     loglevel = logging.INFO
     logformat = "%(name)s[%(process)d] %(levelname)s %(message)s"
@@ -30,6 +41,8 @@ def setup_logger(name, filename=None, include_timestamp=True):
         file_handler = logging.FileHandler(filename)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
+
+    logger.propagate = propagate
 
     # TODO: figure out how to use coloredlogs with custom formatter
     return logger
