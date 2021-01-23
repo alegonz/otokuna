@@ -38,8 +38,10 @@ _sls_deps: requirements/svc.txt | serverless
 #  Could be done via a target that requires a plugins.in file that and generates
 #  the package-lock.json file.
 
+ifneq (,$(filter $(MAKECMDGOALS),package deploy remove))
 ifndef SERVERLESS_ORG
 $(error SERVERLESS_ORG is not set)
+endif
 endif
 STAGE?=dev
 SERVERLESS_ARGS=--stage $(STAGE) --org $(SERVERLESS_ORG)
