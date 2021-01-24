@@ -12,6 +12,24 @@ def remove_prefix(s, prefix):
     return s
 
 
+def datetime_to_truncated_tuple(datetime_):
+    """Converts a datetime to a tuple of (year, month, day, hours, minutes, seconds)"""
+    return datetime_.timetuple()[:6]
+
+
+def build_zipinfo(zfile, filename, date_time):
+    """Build ZipInfo object with the given filename and date_time and
+    with the same compression setup as the containing ZipFile.
+
+    This is to workaround a pitfall of ZipInfo that will instantiate
+    objects with no compression by default.
+    """
+    zinfo = zipfile.ZipInfo(filename, date_time)
+    zinfo.compress_type = zfile.compression
+    zinfo._compresslevel = zfile.compresslevel
+    return zinfo
+
+
 def main(event, context):
     """Download objects from the base_path "folder" and upload them as a zip file.
 
@@ -61,9 +79,11 @@ def main(event, context):
                     continue
                 delete.append(key)
                 filename = remove_prefix(key, prefix)
+                date_time = datetime_to_truncated_tuple(obj["LastModified"])
                 logger.info(f"Downloading and compressing {key} -> {filename}")
                 assert filename not in ("", "/")
-                with zfile.open(filename, "w") as zarc:
+                zinfo = build_zipinfo(zfile, filename, date_time)
+                with zfile.open(zinfo, "w") as zarc:
                     s3_client.download_fileobj(Bucket=output_bucket, Key=key, Fileobj=zarc)
 
         stream.seek(0)

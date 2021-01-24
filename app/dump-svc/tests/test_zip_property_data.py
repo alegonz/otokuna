@@ -9,6 +9,19 @@ from moto import mock_s3
 import zip_property_data
 
 
+def assert_date_time_equal(date_time_1, date_time_2):
+    """Compare two ZipInfo date_time's.
+    The seconds may differ by one second because of the limitations
+    of the zip file format.
+    See:
+    - https://bugs.python.org/issue3233
+    - https://bugs.python.org/issue5457
+    """
+    assert len(date_time_1) == len(date_time_2)
+    assert date_time_1[:-1] == date_time_2[:-1]
+    assert abs(date_time_1[-1] - date_time_2[-1]) in (0, 1)
+
+
 @pytest.mark.parametrize("s,expected", [
     ("", ""),
     ("a/b/", ""),
@@ -33,6 +46,9 @@ def test_main():
     s3_client = boto3.client("s3")
     s3_client.create_bucket(Bucket=output_bucket)
 
+    def list_objects():
+        return {obj["Key"]: obj for obj in s3_client.list_objects_v2(Bucket=output_bucket)["Contents"]}
+
     # ---------- Put some objects
     def upload_obj(contents_: bytes, key_: str):
         with io.BytesIO(contents_) as fileobj:
@@ -47,8 +63,10 @@ def test_main():
     # Objects in the "folder"
     for i in range(n_files):
         contents = some_content_template.format(i).encode()
-        key = Path(base_path) / filename_template.format(i)
-        upload_obj(contents, str(key))
+        key = str(Path(base_path) / filename_template.format(i))
+        upload_obj(contents, key)
+
+    objects_by_key = list_objects()
 
     # ---------- Call handler and check
     zipfile_key = f"{base_path}.zip"
@@ -61,11 +79,9 @@ def test_main():
     assert event_out["zipfile_key"] == zipfile_key
 
     # ---------- Check results
-    objects = {obj["Key"] for obj in s3_client.list_objects_v2(Bucket=output_bucket)["Contents"]}
-
     # All objects with the same prefix were zipped
     # and other objects were left untouched.
-    assert objects == other_keys | {zipfile_key}
+    assert set(list_objects()) == other_keys | {zipfile_key}
 
     # Check zipped file contents
     with io.BytesIO() as stream:
@@ -79,3 +95,8 @@ def test_main():
                     contents = arc.read()
                 assert zi.filename == filename_template.format(i)
                 assert contents == some_content_template.format(i).encode()
+                key = str(Path(base_path) / filename_template.format(i))
+                expected_date_time = zip_property_data.datetime_to_truncated_tuple(
+                    objects_by_key[key]["LastModified"]
+                )
+                assert_date_time_equal(zi.date_time, expected_date_time)
