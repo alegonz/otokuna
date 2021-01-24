@@ -2,6 +2,7 @@ import zipfile
 from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 from _pytest.python_api import RaisesContext
@@ -11,6 +12,7 @@ from otokuna.scraping import (
     parse_floors, parse_layout, parse_money, parse_transportation,
     make_properties_dataframe, scrape_properties_from_file,
     ParsingError, Property, Building, Room,
+    _timestamp_to_zipinfo_date_time,
 )
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -116,12 +118,17 @@ def test_parse_transportation(transportation, expected):
 @pytest.mark.parametrize("zipped", [False, True])
 def test_scrape_properties_from_file(zipped, tmp_path):
     html_filename = DATA_DIR / "results_first_page.html"
+    html_file_last_modified_at = round(html_filename.stat().st_mtime, 0)
+
     if zipped:
         # Create temporary zip file with data
         zip_filename = tmp_path / "html_data.zip"
         zip_arcname = html_filename.name
         with zipfile.ZipFile(zip_filename, "w") as zf:
-            zf.write(html_filename, zip_arcname)
+            date_time = _timestamp_to_zipinfo_date_time(html_file_last_modified_at)
+            zi = zipfile.ZipInfo(zip_arcname, date_time)
+            with zf.open(zi, "w") as zarc:
+                zarc.write(html_filename.read_bytes())
 
         filename = zipfile.Path(str(zip_filename), zip_arcname)
         properties = scrape_properties_from_file(filename)
@@ -147,8 +154,11 @@ def test_scrape_properties_from_file(zipped, tmp_path):
             min_floor=5,
             max_floor=5,
             url="https://suumo.jp/chintai/jnc_000062096181/?bc=100220224172",
-            jnc_id="000062096181"
-        )
+            jnc_id="000062096181",
+            new_arrival=True
+        ),
+        html_file_banner_timestamp=1609140469.0,
+        html_file_last_modified_at=html_file_last_modified_at
     )
     expected_last = Property(
         building=Building(
@@ -169,8 +179,11 @@ def test_scrape_properties_from_file(zipped, tmp_path):
             min_floor=1,
             max_floor=1,
             url="https://suumo.jp/chintai/jnc_000062620201/?bc=100210051791",
-            jnc_id="000062620201"
-        )
+            jnc_id="000062620201",
+            new_arrival=False,
+        ),
+        html_file_banner_timestamp=1609140469.0,
+        html_file_last_modified_at=html_file_last_modified_at
     )
     assert len(properties) == 198
     assert properties[0] == expected_first
@@ -179,14 +192,31 @@ def test_scrape_properties_from_file(zipped, tmp_path):
 
 def test_make_properties_dataframe():
     property_ = Property(
-        building=Building(category="賃貸マンション", title="セントラルメゾン", address="東京都大田区中央１",
-                          transportation=("ＪＲ京浜東北線/大森駅 バス7分 (バス停)臼田坂下 歩1分",
-                                          "都営浅草線/西馬込駅 歩18分",
-                                          "京急本線/平和島駅 歩24分"),
-                          age=34, floors=4),
-        room=Room(rent=69000, admin_fee=0, deposit=69000, gratuity=69000, layout="1K", area=22.1,
-                  min_floor=3, max_floor=3, url=f"https://suumo.jp/chintai/jnc_000060701156/?bc=100206393921",
-                  jnc_id="000060701156")
+        building=Building(
+            category="賃貸マンション",
+            title="セントラルメゾン",
+            address="東京都大田区中央１",
+            transportation=("ＪＲ京浜東北線/大森駅 バス7分 (バス停)臼田坂下 歩1分",
+                            "都営浅草線/西馬込駅 歩18分",
+                            "京急本線/平和島駅 歩24分"),
+            age=34,
+            floors=4
+        ),
+        room=Room(
+            rent=69000,
+            admin_fee=0,
+            deposit=69000,
+            gratuity=69000,
+            layout="1K",
+            area=22.1,
+            min_floor=3,
+            max_floor=3,
+            url=f"https://suumo.jp/chintai/jnc_000060701156/?bc=100206393921",
+            jnc_id="000060701156",
+            new_arrival=True
+        ),
+        html_file_banner_timestamp=None,
+        html_file_last_modified_at=1609140470.0
     )
 
     expected = pd.DataFrame.from_dict(
@@ -207,6 +237,9 @@ def test_make_properties_dataframe():
             "max_floor": [3],
             "url": ["https://suumo.jp/chintai/jnc_000060701156/?bc=100206393921"],
             "jnc_id": ["000060701156"],
+            "new_arrival": [True],
+            "html_file_banner_timestamp": [np.nan],
+            "html_file_last_modified_at": [1609140470.0],
             "n_rooms": [1],
             "service_room": [False],
             "living_room": [False],
@@ -217,8 +250,9 @@ def test_make_properties_dataframe():
             "walk_time_station_avg": [14.333333333333334],
             "ward": ["大田区"],
             "district": ["中央"],
+            "html_file_fetched_at": [1609140460.0]
         },
         orient="columns"
     ).set_index("jnc_id", drop=True)
-    actual = make_properties_dataframe([property_])
+    actual = make_properties_dataframe([property_], html_file_fetched_at=1609140460.0)
     pd.testing.assert_frame_equal(actual, expected)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import logging
 import pathlib
 import re
@@ -10,6 +11,7 @@ from typing import List, Tuple, Optional, Union
 
 import attr
 import bs4
+import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
@@ -120,6 +122,54 @@ def parse_layout(s: str) -> Tuple[int, bool, bool, bool, bool]:
     return n_rooms, *(char in s for char in "SLDK")
 
 
+def parse_banner_timestamp(s: str) -> Optional[float]:
+    """Get timestamp of rotation ad banner from an embedded script.
+    The timestamp is rounded to seconds.
+    """
+    found = re.search(r"&times=(\d+)", s)
+    if not found:
+        return None
+    timestamp_ns = float(found.group(1))
+    return round(timestamp_ns / 1000, 0)
+
+
+def get_banner_timestamp(soup: bs4.BeautifulSoup) -> Optional[float]:
+    timestamp = None
+    for script in soup.findAll("script"):
+        timestamp = parse_banner_timestamp(script.string or '')
+        if timestamp is not None:
+            break
+    return timestamp
+
+
+def _zipinfo_date_time_to_timestamp(date_time: Tuple) -> float:
+    """Converts a date_time of a ZipInfo object to a unix timestamp.
+    The timestamp is rounded to seconds because that is the resolution of
+    date_time.
+    """
+    timestamp = datetime.datetime(*date_time).timestamp()
+    assert timestamp.is_integer()
+    return timestamp
+
+
+def _timestamp_to_zipinfo_date_time(timestamp: float) -> Tuple:
+    """Converts a unix timestamp to a date_time for a ZipInfo object."""
+    date_time = datetime.datetime.fromtimestamp(timestamp).timetuple()[:6]
+    return date_time
+
+
+def get_last_modified_at_timestamp(filename: Union[pathlib.Path, zipfile.Path]) -> float:
+    """Get timestamp of last modified time of the given file.
+    The timestamp is rounded to seconds.
+    """
+    if isinstance(filename, pathlib.Path):
+        return round(filename.stat().st_mtime, 0)
+    elif isinstance(filename, zipfile.Path):
+        return _zipinfo_date_time_to_timestamp(filename.root.getinfo(filename.at).date_time)
+    else:
+        raise ValueError("Invalid filename type.")
+
+
 # attrs does not play well with cloudpickle (required by joblib)
 # See: https://github.com/python-attrs/attrs/issues/458
 @attr.dataclass(repr=False)
@@ -155,6 +205,7 @@ class Room:
     max_floor: int  # max階 (when the property covers only one floor min_floor == max_floor)
     url: str  # e.g. https://suumo.jp/chintai/jnc_000054786764/?bc=100216408055
     jnc_id: str  # 物件ID e.g. "000054786764"
+    new_arrival: bool  # whether the property is labeled as 本日の新着物件 or not
 
     @classmethod
     def from_tag(cls, tag: bs4.element.Tag):
@@ -169,19 +220,22 @@ class Room:
         detail_href = tag.select_one("td.ui-text--midium.ui-text--bold a")["href"]
         url = f"{SUUMO_URL}{detail_href}"
         jnc_id = re.search(r"jnc_([0-9]*)/", detail_href).group(1)
+        new_arrival = tag.find(class_="cassetteitem_other-checkbox--newarrival") is not None
         return cls(parse_money(rent, unit="万円"),
                    parse_money(admin_fee, unit="円"),
                    parse_money(deposit, unit="万円"),
                    parse_money(gratuity, unit="万円"),
                    layout, parse_area(area),
                    min_floor, max_floor,
-                   url, jnc_id)
+                   url, jnc_id, new_arrival)
 
 
 @attr.dataclass(repr=False)
 class Property:
     building: Building
     room: Room
+    html_file_banner_timestamp: Optional[float]  # timestamp of the ad banner in the html file
+    html_file_last_modified_at: float
 
 
 def scrape_properties_from_file(
@@ -191,11 +245,15 @@ def scrape_properties_from_file(
     """Scrape properties from given html file.
     filename may be a path to a html file or zipfile.Path objects specifying the
     location of the html file within a zipfile.
+    You must also pass a unix timestamp of the time the file was fetched at.
     """
     logger = logger or logging.getLogger("dummy")
 
     with filename.open() as file:
         search_results_soup = bs4.BeautifulSoup(file, "html.parser")
+
+    banner_timestamp = get_banner_timestamp(search_results_soup)
+    last_modified_at = get_last_modified_at_timestamp(filename)
 
     building_tags = search_results_soup.find_all("div", class_="cassetteitem")
     properties = []
@@ -212,7 +270,8 @@ def scrape_properties_from_file(
             except ParsingError as e:
                 logger.info(f"Skipping property due to error: {e}")
                 continue
-            properties.append(Property(building, room))
+            property_ = Property(building, room, banner_timestamp, last_modified_at)
+            properties.append(property_)
     logger.info(f"Scraped {filename} ({len(properties)})")
     return properties
 
@@ -238,20 +297,29 @@ def scrape_properties_from_files(
 
 
 def make_properties_dataframe(
-        properties: List[Property], logger: Optional[logging.Logger] = None
+        properties: List[Property],
+        html_file_fetched_at: Optional[float] = None,
+        logger: Optional[logging.Logger] = None
 ) -> pd.DataFrame:
-    """Make a dataframe from the given properties"""
+    """Make a dataframe from the given properties.
+    You may specify a timestamp indicating when the html files were fetched
+    from suumo, and it will be added as a column (equal for all rows).
+    """
     logger = logger or logging.getLogger('dummy')
 
     series = []
     for property_ in properties:
+        dict_ = attr.asdict(property_, recurse=False)
         # Building features
         feat_dict_ = {
             f"building_{key}": value
-            for key, value in attr.asdict(property_.building, retain_collection_types=True).items()
+            for key, value in attr.asdict(dict_.pop("building"), retain_collection_types=True).items()
         }
         # Room features
-        feat_dict_.update(attr.asdict(property_.room))
+        feat_dict_.update(attr.asdict(dict_.pop("room")))
+        # Remaining Property attributes
+        feat_dict_.update(dict_)
+        feat_dict_["html_file_banner_timestamp"] = feat_dict_["html_file_banner_timestamp"] or np.nan
         try:
             # Layout features
             (feat_dict_["n_rooms"],
@@ -272,6 +340,7 @@ def make_properties_dataframe(
 
         series.append(pd.Series(feat_dict_))
     df = pd.DataFrame(series)
+    df["html_file_fetched_at"] = html_file_fetched_at or np.nan
     df.set_index("jnc_id", drop=True, inplace=True)
     return df
 
@@ -303,7 +372,7 @@ def _main():
 
         properties = scrape_properties_from_files(filenames, n_jobs=args.jobs)
 
-    df = make_properties_dataframe(properties, logger)
+    df = make_properties_dataframe(properties, None, logger)
 
     if not args.output_filename:
         output_filename = pathlib.Path(args.html_dir)
