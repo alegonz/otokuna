@@ -378,7 +378,7 @@ def _main():
     df = make_properties_dataframe(properties, html_file_fetched_at, logger)
 
     if not args.output_filename:
-        output_filename = pathlib.Path(args.html_dir)
+        output_filename = pathlib.Path(args.html_dir).resolve()
         output_filename = output_filename.with_suffix(f".{args.output_format}").name
     else:
         output_filename = args.output_filename
