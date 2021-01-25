@@ -340,7 +340,8 @@ def make_properties_dataframe(
 
         series.append(pd.Series(feat_dict_))
     df = pd.DataFrame(series)
-    df["html_file_fetched_at"] = html_file_fetched_at or np.nan
+    if html_file_fetched_at is not None:
+        df["html_file_fetched_at"] = html_file_fetched_at
     df.set_index("jnc_id", drop=True, inplace=True)
     return df
 
@@ -356,6 +357,7 @@ def _main():
     parser.add_argument("--output-format", choices=("csv", "pickle"),
                         default="csv", help="Output file format")
     parser.add_argument("--jobs", default=1, type=int, help="Number of jobs for parallelization")
+    parser.add_argument("--fetched-today", action="store_true", help="Add current timestamp in a column.")
     args = parser.parse_args()
 
     html_dir = pathlib.Path(args.html_dir)
@@ -372,7 +374,8 @@ def _main():
 
         properties = scrape_properties_from_files(filenames, n_jobs=args.jobs)
 
-    df = make_properties_dataframe(properties, None, logger)
+    html_file_fetched_at = round(datetime.datetime.now().timestamp(), 0) if args.fetched_today else None
+    df = make_properties_dataframe(properties, html_file_fetched_at, logger)
 
     if not args.output_filename:
         output_filename = pathlib.Path(args.html_dir)
