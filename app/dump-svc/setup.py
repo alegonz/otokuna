@@ -6,6 +6,7 @@ setup(
     py_modules=[
         "generate_base_path",
         "dump_property_data",
-        "zip_property_data"
+        "zip_property_data",
+        "scrape_property_data"
     ]
 )

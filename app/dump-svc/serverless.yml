@@ -59,6 +59,7 @@ package:
     - dump_property_data.py
     - generate_base_path.py
     - zip_property_data.py
+    - scrape_property_data.py
 
 functions:
   generate-base-path:
@@ -67,13 +68,17 @@ functions:
   dump-property-data:
     handler: dump_property_data.main
     timeout: 300  # 5 min. max of AWS Lambda is 15 min
-    memorySize: 256  # observed value of 154 MB + leeway
+    memorySize: 256  # observed value of ~154 MB + leeway
     # TODO: consider limiting the number of attempts
     # maximumRetryAttempts: 1
   zip-property-data:
     handler: zip_property_data.main
-    timeout: 90  # 1.5 min, observed value of 30s x 3
-    memorySize: 256  # ~ observed value of 113 MB x 2
+    timeout: 90  # 1.5 min, observed value of ~30s x 3
+    memorySize: 256  # observed value of ~113 MB x 2
+  scrape-property-data:
+    handler: scrape_property_data.main
+    timeout: 480  # observed value of ~3.6m x 2
+    memorySize: 768  # observed value of ~360 MB x 2
 
 stepFunctions:
   stateMachines:
@@ -114,4 +119,9 @@ stepFunctions:
             Type: Task
             Resource:
               Fn::GetAtt: [zip-property-data, Arn]
+            Next: ScrapePropertyData
+          ScrapePropertyData:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [scrape-property-data, Arn]
             End: true
