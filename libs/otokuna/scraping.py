@@ -245,7 +245,6 @@ def scrape_properties_from_file(
     """Scrape properties from given html file.
     filename may be a path to a html file or zipfile.Path objects specifying the
     location of the html file within a zipfile.
-    You must also pass a unix timestamp of the time the file was fetched at.
     """
     logger = logger or logging.getLogger("dummy")
 
