@@ -130,8 +130,7 @@ def test_scrape_properties_from_file(zipped, tmp_path):
             with zf.open(zi, "w") as zarc:
                 zarc.write(html_filename.read_bytes())
 
-        filename = zipfile.Path(str(zip_filename), zip_arcname)
-        properties = scrape_properties_from_file(filename)
+        properties = scrape_properties_from_file(zip_arcname, zip_filename)
     else:
         properties = scrape_properties_from_file(html_filename)
 

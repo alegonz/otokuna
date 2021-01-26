@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import datetime
 import logging
-import pathlib
 import re
-import zipfile
 from argparse import ArgumentParser
 from contextlib import ExitStack
+from os import PathLike
+from pathlib import Path
 from statistics import mean
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional, Union, IO, Iterable
+from zipfile import is_zipfile, ZipFile, ZipInfo
 
 import attr
 import bs4
@@ -17,6 +18,8 @@ from joblib import Parallel, delayed
 
 from otokuna import SUUMO_URL
 from otokuna.logging import setup_logger
+
+_FileLike = Union[str, PathLike, IO[bytes]]
 
 
 class ParsingError(Exception):
@@ -158,14 +161,14 @@ def _timestamp_to_zipinfo_date_time(timestamp: float) -> Tuple:
     return date_time
 
 
-def get_last_modified_at_timestamp(filename: Union[pathlib.Path, zipfile.Path]) -> float:
+def get_last_modified_at_timestamp(filename: Union[Path, ZipInfo]) -> float:
     """Get timestamp of last modified time of the given file.
     The timestamp is rounded to seconds.
     """
-    if isinstance(filename, pathlib.Path):
+    if isinstance(filename, Path):
         return round(filename.stat().st_mtime, 0)
-    elif isinstance(filename, zipfile.Path):
-        return _zipinfo_date_time_to_timestamp(filename.root.getinfo(filename.at).date_time)
+    elif isinstance(filename, ZipInfo):
+        return _zipinfo_date_time_to_timestamp(filename.date_time)
     else:
         raise ValueError("Invalid filename type.")
 
@@ -239,21 +242,30 @@ class Property:
 
 
 def scrape_properties_from_file(
-        filename: Union[pathlib.Path, zipfile.Path],
+        filename: Union[str, Path, ZipInfo],
+        zip_filename: Optional[_FileLike] = None,
         logger: Optional[logging.Logger] = None
 ) -> List[Property]:
-    """Scrape properties from given html file.
-    filename may be a path to a html file or zipfile.Path objects specifying the
-    location of the html file within a zipfile.
+    """Scrape properties from given html file. filename can any file-like object.
+    The file may be contained in a zip archive, in which case the filename is
+    treated as a filename within the zip archive and you must pass a file-like
+    of the zip file that contains the file. In that case, filename may be a ZipInfo
+    object.
     """
     logger = logger or logging.getLogger("dummy")
 
-    with filename.open() as file:
+    with ExitStack() as stack:
+        if zip_filename is not None:
+            zfile = stack.enter_context(ZipFile(zip_filename))
+            if not isinstance(filename, ZipInfo):
+                filename = zfile.getinfo(filename)
+            file = stack.enter_context(zfile.open(filename))
+        else:
+            file = stack.enter_context(open(filename))
+        last_modified_at = get_last_modified_at_timestamp(filename)
         search_results_soup = bs4.BeautifulSoup(file, "html.parser")
 
     banner_timestamp = get_banner_timestamp(search_results_soup)
-    last_modified_at = get_last_modified_at_timestamp(filename)
-
     building_tags = search_results_soup.find_all("div", class_="cassetteitem")
     properties = []
     for building_tag in building_tags:
@@ -276,21 +288,25 @@ def scrape_properties_from_file(
 
 
 def scrape_properties_from_files(
-        filenames: List[Union[pathlib.Path, zipfile.Path]],
+        filenames: Iterable[Union[str, Path, ZipInfo]],
+        zip_filename: Optional[_FileLike] = None,
         logger: Optional[logging.Logger] = None,
         n_jobs: int = 1
 ) -> List[Property]:
-    """Scrape properties from several files.
+    """Scrape properties from several files. Each file can be any file-like
+    object.
 
-    The filenames may be paths to html files or zipfile.Path objects specifying the
-    location of the html file within a zipfile.
+    The files may be contained in a zip archive, in which case each file is
+    treated as a filename within the zip archive and you must pass a file-like
+    of the zip file that contains the files. In that case, each file may be a
+    ZipInfo object.
 
     This function supports parallel processing via the `n_jobs` argument. Pass
     n_jobs=-1 to use all CPU cores (defaults to 1 core). It returns a flattened
     list with the properties scraped from all files.
     """
     lists = Parallel(n_jobs=n_jobs)(
-        delayed(scrape_properties_from_file)(filename, logger) for filename in filenames
+        delayed(scrape_properties_from_file)(filename, zip_filename, logger) for filename in filenames
     )
     return [p for sublist in lists for p in sublist]  # flatten
 
@@ -359,25 +375,29 @@ def _main():
     parser.add_argument("--fetched-today", action="store_true", help="Add current timestamp in a column.")
     args = parser.parse_args()
 
-    html_dir = pathlib.Path(args.html_dir)
-    with ExitStack() as stack:
-        if zipfile.is_zipfile(html_dir):
-            zfile = stack.enter_context(zipfile.ZipFile(html_dir))
-            filenames = sorted(zi.filename for zi in zfile.infolist()
-                               if not zi.is_dir() and zi.filename.endswith(".html"))
-            filenames = [zipfile.Path(zfile, at=f) for f in filenames]
-        elif html_dir.is_dir():
+    html_dir = Path(args.html_dir)
+    if is_zipfile(html_dir):
+        with ZipFile(html_dir) as zfile:
+            filenames = sorted(
+                (zi for zi in zfile.infolist()
+                 if not zi.is_dir() and zi.filename.endswith(".html")),
+                key=lambda zi: zi.filename
+            )
+        zip_filename = html_dir
+    else:
+        if html_dir.is_dir():
             filenames = sorted(p for p in html_dir.glob("*.html") if not p.is_dir())
         else:
             filenames = [html_dir]
+        zip_filename = None
 
-        properties = scrape_properties_from_files(filenames, n_jobs=args.jobs)
+    properties = scrape_properties_from_files(filenames, zip_filename, logger=logger, n_jobs=args.jobs)
 
     html_file_fetched_at = round(datetime.datetime.now().timestamp(), 0) if args.fetched_today else None
     df = make_properties_dataframe(properties, html_file_fetched_at, logger)
 
     if not args.output_filename:
-        output_filename = pathlib.Path(args.html_dir).resolve()
+        output_filename = Path(args.html_dir).resolve()
         output_filename = output_filename.with_suffix(f".{args.output_format}").name
     else:
         output_filename = args.output_filename
