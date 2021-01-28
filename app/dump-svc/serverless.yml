@@ -19,7 +19,6 @@ frameworkVersion: "2"
 plugins:
   - serverless-python-requirements
   - serverless-step-functions
-
 custom:
   # TODO: Package requirements independently
   #  The S3 path generator should be lightweight
