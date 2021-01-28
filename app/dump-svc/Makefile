@@ -31,13 +31,6 @@ test: venv
 .PHONY: _sls_deps
 _sls_deps: requirements/svc.txt | serverless
 
-# TODO:
-#  Add installation of the following plugins:
-#  - serverless-python-requirements
-#  - serverless-step-functions
-#  Could be done via a target that requires a plugins.in file that and generates
-#  the package-lock.json file.
-
 ifneq (,$(filter $(MAKECMDGOALS),package deploy remove))
 ifndef SERVERLESS_ORG
 $(error SERVERLESS_ORG is not set)
@@ -64,3 +57,11 @@ deploy: _sls_deps _clean_sls_py_req
 .PHONY: remove
 remove: | serverless
 	sls remove $(SERVERLESS_ARGS)
+
+package-lock.json: plugins.in
+	@for plugin_name in $$(cat plugins.in); do \
+	    sls plugin install --name $${plugin_name} --stage $(STAGE); \
+	done
+
+.PHONY: plugins
+plugins: package-lock.json
