@@ -64,20 +64,24 @@ functions:
   generate-base-path:
     handler: generate_base_path.main
     memorySize: 128
+    description: ${env:GIT_DESCRIPTION}
   dump-property-data:
     handler: dump_property_data.main
     timeout: 300  # 5 min. max of AWS Lambda is 15 min
     memorySize: 256  # observed value of ~154 MB + leeway
     # TODO: consider limiting the number of attempts
     # maximumRetryAttempts: 1
+    description: ${env:GIT_DESCRIPTION}
   zip-property-data:
     handler: zip_property_data.main
     timeout: 90  # 1.5 min, observed value of ~30s x 3
     memorySize: 256  # observed value of ~113 MB x 2
+    description: ${env:GIT_DESCRIPTION}
   scrape-property-data:
     handler: scrape_property_data.main
     timeout: 480  # observed value of ~3.6m x 2
     memorySize: 2048  # observed value of ~360 MB x 5.6
+    description: ${env:GIT_DESCRIPTION}
 
 stepFunctions:
   stateMachines:
@@ -89,7 +93,9 @@ stepFunctions:
               output_bucket: ${self:custom.output_bucket}
               tokyo_wards: ${file(params.yml):tokyo_wards}
       definition:
-        Comment: "A state machine that dumps property data in parallel"
+        Comment: |
+          A state machine that dumps and scrapes property data.
+          ${env:GIT_DESCRIPTION}
         StartAt: GenerateBasePath
         States:
           GenerateBasePath:
