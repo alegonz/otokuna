@@ -37,7 +37,7 @@ provider:
   lambdaHashingVersion: 20201221
   stage: ${opt:stage}
   region: us-east-1
-  tags:
+  stackTags:
     otokuna:git-repo-name: ${env:GIT_REPO_NAME}
     otokuna:git-branch: ${env:GIT_BRANCH}
     otokuna:git-commit-hash-short: ${env:GIT_COMMIT_HASH_SHORT}
