@@ -28,8 +28,16 @@ endif
 test: venv
 	$(VENV)/pytest .
 
+package-lock.json: plugins.in
+	@for plugin_name in $$(cat plugins.in); do \
+	    sls plugin install --name $${plugin_name} --stage $(STAGE); \
+	done
+
+.PHONY: plugins | serverless
+plugins: package-lock.json
+
 .PHONY: _sls_deps
-_sls_deps: requirements/svc.txt | serverless
+_sls_deps: plugins requirements/svc.txt | serverless
 
 ifneq (,$(filter $(MAKECMDGOALS),package deploy remove))
 ifndef SERVERLESS_ORG
@@ -57,11 +65,3 @@ deploy: _sls_deps _clean_sls_py_req
 .PHONY: remove
 remove: | serverless
 	sls remove $(SERVERLESS_ARGS)
-
-package-lock.json: plugins.in
-	@for plugin_name in $$(cat plugins.in); do \
-	    sls plugin install --name $${plugin_name} --stage $(STAGE); \
-	done
-
-.PHONY: plugins
-plugins: package-lock.json
