@@ -37,6 +37,11 @@ provider:
   lambdaHashingVersion: 20201221
   stage: ${opt:stage}
   region: us-east-1
+  tags:
+    otokuna:git-repo-name: ${env:GIT_REPO_NAME}
+    otokuna:git-branch: ${env:GIT_BRANCH}
+    otokuna:git-commit-hash-short: ${env:GIT_COMMIT_HASH_SHORT}
+    otokuna:git-is-dirty: ${env:GIT_IS_DIRTY}
   # TODO: The roles should be customized per function
   iamRoleStatements:
     - Effect: Allow
@@ -64,24 +69,20 @@ functions:
   generate-base-path:
     handler: generate_base_path.main
     memorySize: 128
-    description: ${env:GIT_DESCRIPTION}
   dump-property-data:
     handler: dump_property_data.main
     timeout: 300  # 5 min. max of AWS Lambda is 15 min
     memorySize: 256  # observed value of ~154 MB + leeway
     # TODO: consider limiting the number of attempts
     # maximumRetryAttempts: 1
-    description: ${env:GIT_DESCRIPTION}
   zip-property-data:
     handler: zip_property_data.main
     timeout: 90  # 1.5 min, observed value of ~30s x 3
     memorySize: 256  # observed value of ~113 MB x 2
-    description: ${env:GIT_DESCRIPTION}
   scrape-property-data:
     handler: scrape_property_data.main
     timeout: 480  # observed value of ~3.6m x 2
     memorySize: 2048  # observed value of ~360 MB x 5.6
-    description: ${env:GIT_DESCRIPTION}
 
 stepFunctions:
   stateMachines:
@@ -93,9 +94,6 @@ stepFunctions:
               output_bucket: ${self:custom.output_bucket}
               tokyo_wards: ${file(params.yml):tokyo_wards}
       definition:
-        Comment: |
-          A state machine that dumps and scrapes property data.
-          ${env:GIT_DESCRIPTION}
         StartAt: GenerateBasePath
         States:
           GenerateBasePath:

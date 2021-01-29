@@ -61,13 +61,10 @@ endif
 STAGE?=dev
 SERVERLESS_ARGS=--stage $(STAGE) --org $(SERVERLESS_ORG)
 
-define GIT_DESCRIPTION
-GIT_REPO_NAME: $(shell basename "$$(git rev-parse --show-toplevel)")
-GIT_BRANCH: $(shell git rev-parse --abbrev-ref HEAD)
-GIT_COMMIT_HASH_SHORT: $(shell git rev-parse --short HEAD)
-GIT_IS_DIRTY: $(shell if [ -n "$$(git diff HEAD)" ]; then echo true; else echo false; fi)
-endef
-export GIT_DESCRIPTION
+export GIT_REPO_NAME = $(shell basename "$$(git rev-parse --show-toplevel)")
+export GIT_BRANCH = $(shell git rev-parse --abbrev-ref HEAD)
+export GIT_COMMIT_HASH_SHORT = $(shell git rev-parse --short HEAD)
+export GIT_IS_DIRTY = $(shell if [ -n "$$(git diff HEAD)" ]; then echo true; else echo false; fi)
 
 # It is safer to clean the cache of serverless-python-requirements
 # to avoid missing packaging changes to the libs.
