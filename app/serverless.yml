@@ -23,7 +23,7 @@ custom:
   # TODO: Package requirements independently
   #  The S3 path generator should be lightweight
   pythonRequirements:
-    pythonBin: ../../.venv/bin/python3
+    pythonBin: ../.venv/bin/python3
     fileName: requirements/svc.txt
     dockerizePip: non-linux
     slim: true
