@@ -25,10 +25,7 @@ $(PIP_COMPILE): | $(VENV)
 #      make venv PIP_COMPILE_ARGS="-q"
 ifneq ($(PIP_COMPILE_ARGS),)
 requirements/svc.txt: requirements/svc.in | $(PIP_COMPILE)
-	# TODO: upgrade serverless-python-requirements to >=5.1.1 to avoid sed workaround.
-	#   See: https://github.com/UnitedIncome/serverless-python-requirements/issues/36
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) $(PIP_COMPILE_ARGS) -q --output-file $@ $<
-	sed -i 's/^-e //' $@
 
 requirements/dev.txt: requirements/dev.in requirements/svc.txt | $(PIP_COMPILE)
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) $(PIP_COMPILE_ARGS) -q --output-file $@ $<

@@ -15,6 +15,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+wheelhouse/
 
 # Serverless directories
 .serverless

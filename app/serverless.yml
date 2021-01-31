@@ -24,7 +24,9 @@ custom:
   #  The S3 path generator should be lightweight
   pythonRequirements:
     pythonBin: ../.venv/bin/python3
-    fileName: ../requirements/svc.txt
+    fileName: requirements.txt
+    pipCmdExtraArgs:
+      - '--no-index --find-links=wheelhouse'
     dockerizePip: non-linux
     slim: true
   # every day at 12:00 UTC == 21:00 JST
