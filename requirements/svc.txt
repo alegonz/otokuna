@@ -4,7 +4,7 @@
 #
 #    make requirements/svc.txt
 #
-file:../libs#egg=otokuna
+file:libs#egg=otokuna
     # via -r requirements/svc.in
 attrs==20.3.0
     # via otokuna
