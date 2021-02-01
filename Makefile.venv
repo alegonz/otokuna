@@ -1,6 +1,7 @@
 #
 # SEAMLESSLY MANAGE PYTHON VIRTUAL ENVIRONMENT WITH A MAKEFILE
 #
+# Modified by Alejandro Gonzalez (@alegonz) based on the original from:
 # https://github.com/sio/Makefile.venv             v2020.08.14
 #
 #
@@ -42,13 +43,9 @@
 #
 # This Makefile can be configured via following variables:
 #   PY
-#       Command name for system Python interpreter. It is used only initialy to
+#       Command name for system Python interpreter. It is used only initially to
 #       create the virtual environment
 #       Default: python3
-#   REQUIREMENTS_TXT
-#       Space separated list of paths to requirements.txt files.
-#       Paths are resolved relative to current working directory.
-#       Default: requirements.txt
 #   WORKDIR
 #       Parent directory for the virtual environment.
 #       Default: current working directory.
@@ -74,7 +71,6 @@
 PY?=python3
 WORKDIR?=.
 VENVDIR?=$(WORKDIR)/.venv
-REQUIREMENTS_TXT?=$(wildcard requirements.txt)  # Multiple paths are supported (space separated)
 MARKER=.initialized-with-Makefile.venv
 
 
@@ -112,38 +108,14 @@ show-venv: venv
 debug-venv:
 	@$(MAKE) --version
 	$(info PY="$(PY)")
-	$(info REQUIREMENTS_TXT="$(REQUIREMENTS_TXT)")
 	$(info VENVDIR="$(VENVDIR)")
-	$(info VENVDEPENDS="$(VENVDEPENDS)")
 	$(info WORKDIR="$(WORKDIR)")
-
-
-#
-# Dependencies
-#
-
-ifneq ($(strip $(REQUIREMENTS_TXT)),)
-VENVDEPENDS+=$(REQUIREMENTS_TXT)
-endif
-
-ifneq ($(wildcard setup.py),)
-VENVDEPENDS+=setup.py
-endif
-ifneq ($(wildcard setup.cfg),)
-VENVDEPENDS+=setup.cfg
-endif
 
 $(VENV):
 	$(PY) -m venv $(VENVDIR)
 	$(VENV)/python -m pip install --upgrade pip setuptools wheel
 
-$(VENV)/$(MARKER): $(VENVDEPENDS) | $(VENV)
-ifneq ($(strip $(REQUIREMENTS_TXT)),)
-	$(VENV)/pip install $(foreach path,$(REQUIREMENTS_TXT),-r $(path))
-endif
-ifneq ($(wildcard setup.py),)
-	$(VENV)/pip install -e .
-endif
+$(VENV)/$(MARKER): | $(VENV)
 	touch $(VENV)/$(MARKER)
 
 
