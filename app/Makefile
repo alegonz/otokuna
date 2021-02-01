@@ -3,7 +3,8 @@ include $(HERE)/../Makefile
 
 .PHONY: test
 test: venv
-	$(VENV)/pytest .
+	$(VENV)/pip install -e .
+	$(VENV)/pytest tests/
 
 ~/.serverless/bin/sls:
 	curl -o- -L https://slss.io/install | bash

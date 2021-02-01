@@ -1,10 +1,6 @@
 HERE:=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 WORKDIR:=$(HERE)
 
-# TODO: Consider disabling automatic installation of requirements files
-#   and setup.py in Makefile.venv, and instead do the installation explicitly.
-REQUIREMENTS_TXT=requirements/svc.txt requirements/dev.txt
-
 include $(WORKDIR)/Makefile.venv
 
 # Install pip-compile to pin app dependencies
@@ -30,3 +26,7 @@ requirements/svc.txt: requirements/svc.in | $(PIP_COMPILE)
 requirements/dev.txt: requirements/dev.in requirements/svc.txt | $(PIP_COMPILE)
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) $(PIP_COMPILE_ARGS) -q --output-file $@ $<
 endif
+
+.PHONY: setup
+setup: venv
+	$(VENV)/pip install -r requirements/svc.txt -r requirements/dev.txt
