@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 
-from otokuna.tree import DecisionTreeRegressorWithQuantiles
+SKLEARN_NOT_FOUND = False
+try:
+    from otokuna.tree import DecisionTreeRegressorWithQuantiles
+except ImportError:
+    SKLEARN_NOT_FOUND = True
 
 
 @pytest.fixture
@@ -12,6 +16,7 @@ def dummy_data():
     yield X, y
 
 
+@pytest.mark.skipif(SKLEARN_NOT_FOUND, reason="sklearn not found")
 class TestDecisionTreeRegressorWithQuantiles:
     def test_fit(self, dummy_data):
         X, y = dummy_data
