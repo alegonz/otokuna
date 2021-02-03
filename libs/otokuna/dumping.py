@@ -160,7 +160,7 @@ def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Se
     given dump_dir.
     """
     datetime_str = now_isoformat()
-    dump_dir = Path(f"{dump_dir}/{datetime_str}")
+    dump_dir = Path(f"{dump_dir}/{datetime_str}/東京都")
     dump_dir.mkdir(parents=True)
     logger = setup_logger("dump-properties", dump_dir / "dump.log")
     for page, response in iter_search_results(building_categories, wards, only_today, sleep_time, logger):
