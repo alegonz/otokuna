@@ -1,4 +1,5 @@
 import re
+from typing import Tuple
 
 import pandas as pd
 from kanjize import int2kanji
@@ -69,3 +70,42 @@ def add_address_coords(df: pd.DataFrame) -> pd.DataFrame:
     tokyo_df = tokyo_df[["latitude", "longitude", "join_key"]]
     tokyo_df.set_index("join_key", inplace=True)
     return df.join(tokyo_df, on="join_key", how="left").drop(columns="join_key")
+
+
+def add_target_variable(df: pd.DataFrame) -> pd.DataFrame:
+    """Add column with the target variable to the given dataframe."""
+    return df.assign(y=df.rent + df.admin_fee)
+
+
+def clean_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean the given dataframe.
+    It removes rows that are duplicated, have outliers, and have missing values.
+    """
+    df = df[~df.index.duplicated(keep='first')]
+    df = remove_outliers(df)
+    # e.g. some addresses may not have been found by add_address_coords
+    df.dropna(inplace=True)
+    assert not df.isna().values.any()
+    return df
+
+
+def df2Xy(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
+    """Split dataframe into independent (X) and dependent variables (y)."""
+    indep_vars = [
+        "building_age",
+        "building_floors",
+        "area",
+        "min_floor",
+        "max_floor",
+        "n_rooms",
+        "service_room",
+        "living_room",
+        "dining_room",
+        "kitchen",
+        "n_stations",
+        "walk_time_station_min",
+        "walk_time_station_avg",
+        "latitude",
+        "longitude",
+    ]
+    return df[indep_vars], df.y
