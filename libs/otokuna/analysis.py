@@ -6,23 +6,23 @@ from kanjize import int2kanji
 from otokuna import DATA_DIR
 
 
-def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
+def remove_outliers(df: pd.DataFrame, thres=0.99) -> pd.DataFrame:
     """Remove outliers from properties dataframe.
 
-    It removes samples that fall in the top 2.5% percentile on
-    either of the following columns:
+    It removes samples that fall in the top (1 - thres) x 100 percentile
+    on either of the following columns:
     - area (e.g. 100m2)
-    - number of rooms (e.g. 12)
-    - building age (e.g. 99 years)
-
-    TODO:
-      - remove by rent? (there are some outrageously expensive properties)
-      - remove properties with high admin_fee/rent ratio
+    - n_rooms (e.g. 12)
+    - building_age (e.g. 99 years)
+    - rent (e.g. 3,500,000 yen)
+    - admin_fee/rent ratio (e.g. 2, likely due to typo in page)
     """
+    df = df.assign(rent_admin_fee_ratio=df.admin_fee / df.rent)
     outlier_flag = False
-    for col in ("area", "n_rooms", "building_age"):
-        q = df[col].quantile(0.975)
+    for col in ("area", "n_rooms", "building_age", "rent", "rent_admin_fee_ratio"):
+        q = df[col].quantile(thres)
         outlier_flag |= df[col] == q
+    df.drop(columns=["rent_admin_fee_ratio"], inplace=True)
     return df[~outlier_flag]
 
 
