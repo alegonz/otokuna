@@ -9,3 +9,16 @@ scrape-properties:
   - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
     md5: 6401c838b9c2831d0fa8a5b2618d7bf1
     size: 62269184
+train:
+  cmd: ./train.py
+  deps:
+  - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
+    md5: 6401c838b9c2831d0fa8a5b2618d7bf1
+    size: 62269184
+  outs:
+  - path: models/regressor.cbm
+    md5: cb8b4cf922221c2b898013cb7e5452d8
+    size: 10354032
+  - path: models/regressor.onnx
+    md5: 2ca61d505fb6081d9f09727763b32cf5
+    size: 45623329
