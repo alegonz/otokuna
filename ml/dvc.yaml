@@ -1,0 +1,8 @@
+stages:
+  scrape-properties:
+    cmd: scrape-properties data/2021-01-16T20:40:36+09:00/東京都.zip --output-filename
+      data/2021-01-16T20:40:36+09:00/東京都.pickle --output-format pickle --jobs 3
+    deps:
+    - data/2021-01-16T20:40:36+09:00/東京都.zip
+    outs:
+    - data/2021-01-16T20:40:36+09:00/東京都.pickle
