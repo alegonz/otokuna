@@ -1,5 +1,6 @@
+import random
 import re
-from typing import Tuple
+from typing import List, Tuple, Union
 
 import pandas as pd
 from kanjize import int2kanji
@@ -109,3 +110,40 @@ def df2Xy(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
         "longitude",
     ]
     return df[indep_vars], df.y
+
+
+def train_val_test_split(
+        arrays: List[Union[pd.DataFrame, pd.Series]],
+        val_ratio: float,
+        test_ratio: float,
+        seed=None
+):
+    """Split each of given arrays into a train/validation/test set.
+    The validation/test ratio can be specified by the val_ratio and
+    test_ratio arguments, respectively. The seed argument can be used
+    to fix the random generator seed.
+
+    It returns a list with the 3-way split of each input array.
+    """
+    assert 0 <= val_ratio <= 1
+    assert 0 <= test_ratio <= 1
+    assert val_ratio + test_ratio <= 1
+    n = len(arrays[0])
+    assert all(len(arr) == n for arr in arrays)
+
+    if seed is not None:
+        random.seed(seed)
+
+    idxs = list(range(n))
+    random.shuffle(idxs)
+    n_val = int(n * val_ratio)
+    n_test = int(n * test_ratio)
+
+    split = []
+    for arr in arrays:
+        split.append((
+            arr.iloc[idxs[n_test + n_val:]],  # train
+            arr.iloc[idxs[n_test:n_test + n_val]],  # validation
+            arr.iloc[idxs[:n_test]]  # test
+        ))
+    return split

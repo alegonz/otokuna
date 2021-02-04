@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from otokuna.analysis import _build_address_kanji, add_address_coords
+from otokuna.analysis import _build_address_kanji, add_address_coords, train_val_test_split
 
 
 @pytest.mark.parametrize("address,expected", [
@@ -47,3 +47,17 @@ def test_add_address_coords():
 
     # Original df does not change
     pd.testing.assert_frame_equal(df, df_copy)
+
+
+@pytest.mark.parametrize("array", [
+    pd.Series(range(10)),
+    pd.concat([pd.Series(range(10)), pd.Series(range(10))], axis=1)
+])
+def test_train_val_test_split(array):
+    (train, val, test), *_ = train_val_test_split([array], val_ratio=0.2, test_ratio=0.3)
+    assert len(train) == 5
+    assert len(val) == 2
+    assert len(test) == 3
+    assert not set(train.index) & set(val.index)
+    assert not set(train.index) & set(test.index)
+    assert not set(val.index) & set(test.index)
