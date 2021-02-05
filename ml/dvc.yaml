@@ -9,7 +9,11 @@ stages:
   train:
     cmd: ./train.py
     deps:
-    - data/2021-01-16T20:40:36+09:00/東京都.pickle
+    - data/2021-01-16T20:40:36+09:00/東京都.zip
+    - train.py
     outs:
     - models/regressor.cbm
     - models/regressor.onnx
+    metrics:
+    - metrics.json:
+        cache: false

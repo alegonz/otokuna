@@ -12,13 +12,19 @@ scrape-properties:
 train:
   cmd: ./train.py
   deps:
-  - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
-    md5: 6401c838b9c2831d0fa8a5b2618d7bf1
-    size: 62269184
+  - path: data/2021-01-16T20:40:36+09:00/東京都.zip
+    md5: 347cb00b51813e11fd6da341945351d7
+    size: 84043727
+  - path: train.py
+    md5: ac92be44068332f7c4bd5b9c0fc91b53
+    size: 1885
   outs:
+  - path: metrics.json
+    md5: f44dac0ad4fa46162c3f8a3ff3e9c4e9
+    size: 108
   - path: models/regressor.cbm
-    md5: cb8b4cf922221c2b898013cb7e5452d8
-    size: 10354032
+    md5: d43ab13ea52f3b0136ea4c5f3ee5e766
+    size: 10353896
   - path: models/regressor.onnx
-    md5: 2ca61d505fb6081d9f09727763b32cf5
-    size: 45623329
+    md5: b401ddc885b2eeed787e313d24892283
+    size: 45623236

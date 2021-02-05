@@ -3,7 +3,10 @@
 Train regression model to predict median average price of properties.
 TODO: Move parameters to a params.yaml file.
 """
+import json
+from collections import defaultdict
 
+import numpy as np
 import pandas as pd
 from catboost import CatBoostRegressor
 
@@ -11,6 +14,12 @@ from otokuna.analysis import (
     add_address_coords, add_target_variable, clean_df,
     train_val_test_split, df2Xy
 )
+
+
+def mae(y_true, y_pred):
+    """Mean absolute error"""
+    return np.mean(np.abs(y_true - y_pred), axis=0)
+
 
 # Read and preprocess data
 df = pd.read_pickle("data/2021-01-16T20:40:36+09:00/東京都.pickle")
@@ -40,6 +49,16 @@ _ = model.fit(
     use_best_model=True,
     early_stopping_rounds=10
 )
+
+# Evaluate model
+datasets = {"train": (X_train, y_train), "val": (X_val, y_val), "test": (X_test, y_test)}
+metrics = defaultdict(dict)
+for set_name, (X, y) in datasets.items():
+    y_pred = model.predict(X)
+    metrics[set_name]["MAE"] = mae(y, y_pred)
+
+with open("metrics.json", "w") as file:
+    json.dump(metrics, file)
 
 # Save model
 # We drop the model_guid and train_finish_time metadata to ensure that the
