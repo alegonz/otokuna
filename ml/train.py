@@ -41,5 +41,11 @@ _ = model.fit(
     early_stopping_rounds=10
 )
 
-model.save_model("models/regressor.cbm", format="cbm")
-model.save_model("models/regressor.onnx", format="onnx")
+# Save model
+# We drop the model_guid and train_finish_time metadata to ensure that the
+# produced files are reproducible and result in the same hash always, which
+# is necessary to ensure correct tracking with DVC.
+for key in ("model_guid", "train_finish_time"):
+    del model.get_metadata()[key]
+for format_ in ("cbm", "onnx"):
+    model.save_model(f"models/regressor.{format_}", format=format_)
