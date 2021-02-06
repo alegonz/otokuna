@@ -1,4 +1,5 @@
 import io
+import os
 
 import boto3
 import numpy as np
@@ -16,8 +17,7 @@ def main(event, context):
     output_bucket = event["output_bucket"]
     scraped_data_key = event["scraped_data_key"]
     prediction_data_key = "/".join(scraped_data_key.split("/")[:-1] + ["prediction.pickle"])
-    # NOTE: "model_filename" is a key that is only populated in tests
-    model_filename = event.get("model_filename", "regressor.onnx")
+    model_filename = os.environ["MODEL_PATH"]
 
     s3_client = boto3.client("s3")
     # Get pickle from bucket and read dataframe from it

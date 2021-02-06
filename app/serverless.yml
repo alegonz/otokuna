@@ -32,6 +32,7 @@ custom:
   # every day at 12:00 UTC == 21:00 JST
   rate: cron(0 12 * * ? *)
   output_bucket: ${file(params.yml):output_bucket}-${opt:stage}
+  model_path: regressor.onnx
 
 provider:
   name: aws
@@ -66,6 +67,8 @@ package:
     - generate_base_path.py
     - zip_property_data.py
     - scrape_property_data.py
+    - predict.py
+    - ${self:custom.model_path}
 
 functions:
   generate-base-path:
@@ -85,6 +88,12 @@ functions:
     handler: scrape_property_data.main
     timeout: 480  # observed value of ~3.6m x 2
     memorySize: 2048  # observed value of ~360 MB x 5.6
+  predict:
+    handler: predict.main
+    timeout: 300
+    memorySize: 2048
+    environment:
+      MODEL_PATH: ${self:custom.model_path}
 
 stepFunctions:
   stateMachines:
@@ -129,4 +138,9 @@ stepFunctions:
             Type: Task
             Resource:
               Fn::GetAtt: [scrape-property-data, Arn]
+            Next: Predict
+          Predict:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [predict, Arn]
             End: true

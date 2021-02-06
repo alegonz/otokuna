@@ -1,4 +1,5 @@
 import io
+import os
 from pathlib import Path
 
 import boto3
@@ -16,6 +17,7 @@ def test_main():
     scraped_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/東京都.pickle"
     prediction_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/prediction.pickle"
     model_filename = "../ml/models/regressor.onnx"
+    os.environ["MODEL_PATH"] = model_filename
 
     # Upload pickle file with scraped property data
     s3_client = boto3.client("s3")

@@ -17,9 +17,16 @@ joblib==1.0.0
 kanjize==0.2.1
     # via otokuna
 numpy==1.19.5
-    # via pandas
+    # via
+    #   onnxruntime
+    #   otokuna
+    #   pandas
+onnxruntime==1.6.0
+    # via -r requirements/svc.in
 pandas==1.2.0
     # via otokuna
+protobuf==3.14.0
+    # via onnxruntime
 python-dateutil==2.8.1
     # via pandas
 pytz==2020.5
@@ -27,7 +34,9 @@ pytz==2020.5
 requests==2.25.1
     # via otokuna
 six==1.15.0
-    # via python-dateutil
+    # via
+    #   protobuf
+    #   python-dateutil
 soupsieve==2.1
     # via beautifulsoup4
 urllib3==1.26.2

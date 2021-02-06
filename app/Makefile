@@ -55,12 +55,16 @@ _clean_sls_py_req: | serverless
 	sls requirements clean $(SERVERLESS_ARGS)
 	sls requirements cleanCache $(SERVERLESS_ARGS)
 
+.PHONY: _pull_model
+_pull_model:
+	dvc pull $(shell readlink regressor.onnx)
+
 .PHONY: package
-package: _sls_deps _clean_sls_py_req
+package: _sls_deps _pull_model _clean_sls_py_req
 	sls package $(SERVERLESS_ARGS)
 
-.PHONY: _sls_deps
-deploy: _sls_deps _clean_sls_py_req
+.PHONY: deploy
+deploy: _sls_deps _pull_model _clean_sls_py_req
 	sls deploy $(SERVERLESS_ARGS)
 
 .PHONY: remove
