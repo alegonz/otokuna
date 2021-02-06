@@ -17,7 +17,7 @@ $(PIP_COMPILE): | $(VENV)
 #      make -W requirements/dev.{in,txt} PIP_COMPILE_ARGS="-P freezegun"
 # * To upgrade all pinned packages (e.g. of requirements/svc.txt):
 #      make -W requirements/svc.{in,txt} PIP_COMPILE_ARGS="-U"
-requirements/svc.txt: requirements/svc.in | $(PIP_COMPILE)
+requirements/svc.txt: requirements/svc.in libs/setup.py | $(PIP_COMPILE)
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) $(PIP_COMPILE_ARGS) -q --output-file $@ $<
 
 requirements/dev.txt: requirements/dev.in requirements/svc.txt | $(PIP_COMPILE)

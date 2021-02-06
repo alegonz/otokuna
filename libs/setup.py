@@ -14,6 +14,7 @@ INSTALL_REQUIRES = [
     "beautifulsoup4",
     "joblib",
     "kanjize",
+    "numpy",
     "pandas",
     "requests"
 ]

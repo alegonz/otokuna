@@ -21,7 +21,9 @@ joblib==1.0.0
 kanjize==0.2.1
     # via otokuna
 numpy==1.19.5
-    # via pandas
+    # via
+    #   otokuna
+    #   pandas
 pandas==1.2.0
     # via otokuna
 python-dateutil==2.8.1
