@@ -67,6 +67,10 @@ package: _sls_deps _pull_model _clean_sls_py_req
 deploy: _sls_deps _pull_model _clean_sls_py_req
 	sls deploy $(SERVERLESS_ARGS)
 
+.PHONY:
+invoke:
+	sls invoke --function $(FUNCTION) --path $(INPUT_JSON) $(SERVERLESS_ARGS)
+
 .PHONY: remove
 remove: | serverless
 	sls remove $(SERVERLESS_ARGS)
