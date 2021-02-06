@@ -15,7 +15,7 @@ DATA_DIR = Path(__file__).parent / "data"
 def test_main():
     output_bucket = "somebucket"
     scraped_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/東京都.pickle"
-    prediction_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/prediction.pickle"
+    prediction_data_key = "predictions/daily/2021-01-25T14:59:25+00:00/prediction.pickle"
     model_filename = "../ml/models/regressor.onnx"
     os.environ["MODEL_PATH"] = model_filename
 

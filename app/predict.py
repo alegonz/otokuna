@@ -16,7 +16,8 @@ def main(event, context):
 
     output_bucket = event["output_bucket"]
     scraped_data_key = event["scraped_data_key"]
-    prediction_data_key = "/".join(scraped_data_key.split("/")[:-1] + ["prediction.pickle"])
+    _, *midpath, _ = scraped_data_key.split("/")
+    prediction_data_key = "/".join(["predictions"] + midpath + ["prediction.pickle"])
     model_filename = os.environ["MODEL_PATH"]
 
     s3_client = boto3.client("s3")
