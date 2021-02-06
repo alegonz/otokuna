@@ -17,3 +17,13 @@ stages:
     metrics:
     - metrics.json:
         cache: false
+  check-onnx:
+    cmd: ./check_onnx.py
+    deps:
+    - check_onnx.py
+    - data/2021-01-16T20:40:36+09:00/東京都.pickle
+    - models/regressor.cbm
+    - models/regressor.onnx
+    metrics:
+    - check_onnx.json:
+        cache: false

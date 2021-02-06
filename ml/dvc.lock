@@ -28,3 +28,22 @@ train:
   - path: models/regressor.onnx
     md5: b401ddc885b2eeed787e313d24892283
     size: 45623236
+check-onnx:
+  cmd: ./check_onnx.py
+  deps:
+  - path: check_onnx.py
+    md5: eec8d84583aaa204929e0b1930161e3b
+    size: 1053
+  - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
+    md5: 6401c838b9c2831d0fa8a5b2618d7bf1
+    size: 62269184
+  - path: models/regressor.cbm
+    md5: d43ab13ea52f3b0136ea4c5f3ee5e766
+    size: 10353896
+  - path: models/regressor.onnx
+    md5: b401ddc885b2eeed787e313d24892283
+    size: 45623236
+  outs:
+  - path: check_onnx.json
+    md5: 12ad605ee724b5ba2099f2ce3c16d96d
+    size: 43
