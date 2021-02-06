@@ -18,6 +18,7 @@ from otokuna.analysis import (
 
 def mae(y_true, y_pred):
     """Mean absolute error"""
+    assert y_true.shape == y_pred.shape, f"{y_true.shape} != {y_pred.shape}"
     return np.mean(np.abs(y_true - y_pred), axis=0)
 
 
