@@ -69,23 +69,23 @@ def test_main():
     objects_by_key = list_objects()
 
     # ---------- Call handler and check
-    zipfile_key = f"{base_path}.zip"
+    raw_data_key = f"{base_path}.zip"
     event = {
         "output_bucket": output_bucket,
         "base_path": base_path
     }
     event_out = zip_property_data.main(event, None)
     assert event_out is event
-    assert event_out["zipfile_key"] == zipfile_key
+    assert event_out["raw_data_key"] == raw_data_key
 
     # ---------- Check results
     # All objects with the same prefix were zipped
     # and other objects were left untouched.
-    assert set(list_objects()) == other_keys | {zipfile_key}
+    assert set(list_objects()) == other_keys | {raw_data_key}
 
     # Check zipped file contents
     with io.BytesIO() as stream:
-        s3_client.download_fileobj(Bucket=output_bucket, Key=zipfile_key, Fileobj=stream)
+        s3_client.download_fileobj(Bucket=output_bucket, Key=raw_data_key, Fileobj=stream)
         with zipfile.ZipFile(stream) as zf:
             infolist = zf.infolist()
             assert len(infolist) == n_files

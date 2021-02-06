@@ -65,7 +65,7 @@ def main(event, context):
     s3_client = boto3.client("s3")
 
     assert not base_path.endswith("/")
-    zipfile_key = f"{base_path}.zip"
+    raw_data_key = f"{base_path}.zip"
 
     delete = []
     # an object with a key equal to the base_path is not included
@@ -87,13 +87,13 @@ def main(event, context):
                     s3_client.download_fileobj(Bucket=output_bucket, Key=key, Fileobj=zarc)
 
         stream.seek(0)
-        logger.info(f"Uploading {zipfile_key}")
-        s3_client.upload_fileobj(Fileobj=stream, Bucket=output_bucket, Key=zipfile_key)
+        logger.info(f"Uploading {raw_data_key}")
+        s3_client.upload_fileobj(Fileobj=stream, Bucket=output_bucket, Key=raw_data_key)
 
     # Delete zipped objects
     for key in delete:
         logger.info(f"Deleting {key}")
         s3_client.delete_object(Bucket=output_bucket, Key=key)
 
-    event["zipfile_key"] = zipfile_key
+    event["raw_data_key"] = raw_data_key
     return event
