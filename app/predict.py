@@ -43,7 +43,7 @@ def main(event, context):
     prediction_df = df[["y"]].join(y_pred, how="left")
     # Add relative deviation column
     prediction_df = prediction_df.assign(
-        rel_deviation=lambda df_: (df_.y - df_.y_pred) / (np.finfo(np.float64).eps + df.y)
+        rel_deviation=lambda df_: (df_.y_pred - df_.y) / (np.finfo(np.float64).eps + df.y)
     )
 
     # Upload result to bucket
