@@ -19,7 +19,7 @@ def test_main():
     # Upload zip file with property data
     s3_client = boto3.client("s3")
     s3_client.create_bucket(Bucket=output_bucket)
-    s3_client.upload_file(Bucket=output_bucket, Key=zipfile_key, Filename=str(DATA_DIR / "results.zip"))
+    s3_client.upload_file(Bucket=output_bucket, Key=zipfile_key, Filename=str(DATA_DIR / "raw_data.zip"))
 
     # run main (downloads, creates dataframe, and uploads pickle)
     event = {
@@ -31,7 +31,7 @@ def test_main():
     assert event_out["picklefile_key"] == picklefile_key
 
     # Download pickle and compare
-    expected_df = pd.read_pickle(DATA_DIR / "results.pickle")
+    expected_df = pd.read_pickle(DATA_DIR / "scraped_data.pickle")
     with io.BytesIO() as stream:
         s3_client.download_fileobj(Bucket=output_bucket, Key=picklefile_key, Fileobj=stream)
         stream.seek(0)
