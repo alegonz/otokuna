@@ -40,6 +40,6 @@ def test_main():
         stream.seek(0)
         prediction_df = pd.read_pickle(stream)
 
-    assert tuple(prediction_df.columns) == ("y", "y_pred", "rel_deviation")
+    assert tuple(prediction_df.columns) == ("y", "y_pred")
     scraped_df = pd.read_pickle(DATA_DIR / "scraped_data.pickle")
     pd.testing.assert_index_equal(prediction_df.index, scraped_df.index)

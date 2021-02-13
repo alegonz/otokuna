@@ -41,10 +41,6 @@ def main(event, context):
     y_pred = pd.Series(onnx_out[0].squeeze(), index=y.index).rename("y_pred")
     # Make dataframe with predictions and target from df **prior** to dropna
     prediction_df = df[["y"]].join(y_pred, how="left")
-    # Add relative deviation column
-    prediction_df = prediction_df.assign(
-        rel_deviation=lambda df_: (df_.y_pred - df_.y) / (np.finfo(np.float64).eps + df.y)
-    )
 
     # Upload result to bucket
     logger.info(f"Uploading results to: {prediction_data_key}")
