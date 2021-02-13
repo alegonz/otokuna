@@ -3,7 +3,7 @@ WORKDIR:=$(HERE)
 
 include $(WORKDIR)/Makefile.venv
 
-# Install pip-compile to pin app dependencies
+# Install pip-compile to pin svc dependencies
 # pip-tools is pinned to a version where a workaround for emitting relative paths
 # with pip-compile works.
 PIP_COMPILE=$(VENV)/pip-compile

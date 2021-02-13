@@ -29,7 +29,7 @@ requirements.txt: ../requirements/svc.txt
 	&& sed -i 's/-e file:libs#egg=//' requirements.txt
 
 wheelhouse/.done: ../requirements/svc.txt
-	(cd .. && $(VENV)/pip wheel -r requirements/svc.txt -w app/wheelhouse)
+	(cd .. && $(VENV)/pip wheel -r requirements/svc.txt -w svc/wheelhouse)
 	touch wheelhouse/.done
 
 .PHONY: _sls_deps
