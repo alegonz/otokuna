@@ -74,3 +74,26 @@ invoke:
 .PHONY: remove
 remove: | serverless
 	sls remove $(SERVERLESS_ARGS)
+
+# Run invoke for a batch of dates. This is useful to apply a function
+# retroactively to the data of specific dates. It needs two files:
+# INPUT_JSON_TMPL: a template of the json file with the input data
+#   It must have a __DATE__ string that works as a placeholder for the
+#   actual string with the date.
+# DATE_FILE: a file with the batch of dates (one date per line).
+# Example:
+# make invoke-batch FUNCTION=predict INPUT_JSON_TMPL=predict.tmpl.json DATES_FILE=dates_to_predict.txt
+#
+# Note that AWS_CLIENT_TIMEOUT=600000 is set so that serverless' client
+# is not closed before long-running lambdas finish.
+invoke-batch:
+	while read d; do \
+  	echo processing $${d}; \
+  	export AWS_CLIENT_TIMEOUT=600000; \
+    sls invoke \
+    	--log \
+	    --function $(FUNCTION) \
+	    --data "$$(sed s/__DATE__/$${d}/ $(INPUT_JSON_TMPL))" \
+	    --stage dev \
+	    --org alegonz; \
+	done<$(DATES_FILE)
