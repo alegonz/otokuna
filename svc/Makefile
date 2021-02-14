@@ -7,7 +7,7 @@ test: venv
 	$(VENV)/pytest tests/
 
 ~/.serverless/bin/sls:
-	curl -o- -L https://slss.io/install | bash
+	curl -o- -L https://slss.io/install | VERSION=2.17.0 bash
 
 .PHONY: serverless
 serverless: ~/.serverless/bin/sls
