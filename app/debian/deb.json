@@ -1,0 +1,63 @@
+{
+  "name": "otokuna-web-server",
+  "arch": "amd64",
+  "maintainer": "Alejandro Gonzalez <alejandrojgt@gmail.com>",
+  "description": "otokuna web server",
+  "homepage": "https://github.com/alegonz/otokuna",
+  "files": [
+    {
+      "from": "../app.py",
+      "to": "/opt/otokuna-web-server/",
+      "base": ".."
+    },
+    {
+      "from": "../config/gunicorn.conf.py",
+      "to": "/opt/otokuna-web-server/",
+      "base": ".."
+    },
+    {
+      "from": "../static/**/*",
+      "to": "/opt/otokuna-web-server/",
+      "base": ".."
+    },
+    {
+      "from": "../templates/**",
+      "to": "/opt/otokuna-web-server/",
+      "base": ".."
+    },
+    {
+      "from": "../../requirements/app.txt",
+      "to": "/opt/otokuna-web-server/",
+      "base": "../.."
+    },
+    {
+      "from": "../config/config.yml",
+      "to": "/etc/otokuna-web-server/",
+      "base": ".."
+    },
+    {
+      "from": "../config/nginx.conf",
+      "to": "/etc/otokuna-web-server/",
+      "base": ".."
+    },
+    {
+      "from": ".",
+      "to": "/var/log/otokuna-web-server/"
+    }
+  ],
+  "depends": [
+    "python3-venv",
+    "nginx"
+  ],
+  "systemd-file": "otokuna-web-server.service",
+  "postinst-file": "postinst",
+  "prerm-file": "prerm",
+  "copyrights": [
+    {
+      "files": "*",
+      "copyright": "Copyright (c) 2021, Alejandro Gonzalez.",
+      "license": "",
+      "file": ""
+    }
+  ]
+}

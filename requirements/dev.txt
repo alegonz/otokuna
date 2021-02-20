@@ -17,15 +17,17 @@ aws-sam-translator==1.33.0
     # via cfn-lint
 aws-xray-sdk==2.6.0
     # via moto
-boto3==1.16.58
+boto3==1.17.7
     # via
+    #   -c requirements/app.txt
     #   -r requirements/dev.in
     #   aws-sam-translator
     #   moto
 boto==2.49.0
     # via moto
-botocore==1.19.58
+botocore==1.20.7
     # via
+    #   -c requirements/app.txt
     #   aws-xray-sdk
     #   boto3
     #   moto
@@ -34,6 +36,7 @@ catboost==0.24.4
     # via -r requirements/dev.in
 certifi==2020.12.5
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   dulwich
     #   requests
@@ -43,6 +46,7 @@ cfn-lint==0.44.4
     # via moto
 chardet==4.0.0
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   requests
 colorama==0.4.4
@@ -62,6 +66,7 @@ cycler==0.10.0
     # via matplotlib
 decorator==4.4.2
     # via
+    #   -c requirements/app.txt
     #   jsonpath-ng
     #   networkx
 dictdiffer==0.8.1
@@ -93,6 +98,7 @@ funcy==1.15
     # via dvc
 future==0.18.2
     # via
+    #   -c requirements/app.txt
     #   aws-xray-sdk
     #   grandalf
 gitdb==4.0.5
@@ -105,15 +111,19 @@ graphviz==0.16
     # via catboost
 idna==2.10
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   moto
     #   requests
 iniconfig==1.1.1
     # via pytest
 jinja2==2.11.2
-    # via moto
+    # via
+    #   -c requirements/app.txt
+    #   moto
 jmespath==0.10.0
     # via
+    #   -c requirements/app.txt
     #   boto3
     #   botocore
 jsondiff==1.2.0
@@ -138,6 +148,7 @@ mailchecker==4.0.3
     # via python-benedict
 markupsafe==1.1.1
     # via
+    #   -c requirements/app.txt
     #   jinja2
     #   moto
 matplotlib==3.3.4
@@ -152,10 +163,12 @@ nanotime==0.5.2
     # via dvc
 networkx==2.5
     # via
+    #   -c requirements/app.txt
     #   cfn-lint
     #   dvc
 numpy==1.19.5
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   catboost
     #   matplotlib
@@ -167,6 +180,7 @@ packaging==20.8
     #   pytest
 pandas==1.2.0
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   catboost
 pathlib2==2.3.5
@@ -178,7 +192,9 @@ phonenumbers==8.12.17
 pillow==8.1.0
     # via matplotlib
 plotly==4.14.3
-    # via catboost
+    # via
+    #   -c requirements/app.txt
+    #   catboost
 pluggy==0.13.1
     # via pytest
 ply==3.11
@@ -215,6 +231,7 @@ python-benedict==0.23.2
     # via dvc
 python-dateutil==2.8.1
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   botocore
     #   freezegun
@@ -230,16 +247,19 @@ python-slugify==4.0.1
     # via python-benedict
 pytz==2020.5
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   moto
     #   pandas
 pyyaml==5.4.1
     # via
+    #   -c requirements/app.txt
     #   cfn-lint
     #   moto
     #   python-benedict
 requests==2.25.1
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   docker
     #   dvc
@@ -250,7 +270,9 @@ requests==2.25.1
 responses==0.12.1
     # via moto
 retrying==1.3.3
-    # via plotly
+    # via
+    #   -c requirements/app.txt
+    #   plotly
 rich==9.10.0
     # via dvc
 rsa==4.7
@@ -260,15 +282,20 @@ ruamel.yaml.clib==0.2.2
 ruamel.yaml==0.16.12
     # via dvc
 s3transfer==0.3.4
-    # via boto3
+    # via
+    #   -c requirements/app.txt
+    #   boto3
 scipy==1.6.0
-    # via catboost
+    # via
+    #   -c requirements/app.txt
+    #   catboost
 shortuuid==1.0.1
     # via dvc
 shtab==1.3.4
     # via dvc
 six==1.15.0
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   aws-sam-translator
     #   catboost
@@ -312,6 +339,7 @@ typing-extensions==3.7.4.3
     #   rich
 urllib3==1.26.2
     # via
+    #   -c requirements/app.txt
     #   -c requirements/svc.txt
     #   botocore
     #   dulwich
@@ -324,7 +352,9 @@ wcwidth==0.2.5
 websocket-client==0.57.0
     # via docker
 werkzeug==1.0.1
-    # via moto
+    # via
+    #   -c requirements/app.txt
+    #   moto
 wrapt==1.12.1
     # via aws-xray-sdk
 xmltodict==0.12.0

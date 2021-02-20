@@ -1,0 +1,13 @@
+[Unit]
+Description=otokuna web server.
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/otokuna-web-server
+ExecStart=/bin/bash -c "/opt/otokuna-web-server/venv/bin/gunicorn \
+                            --config /opt/otokuna-web-server/config/gunicorn.conf.py app:app"
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,33 @@
+<!-- templates/view.html.html -->
+{% extends "base.html" %}
+
+{% block view %}
+<section class="section">
+    <div class="content">
+        <p>The table below shows the predictions for properties newly published on <strong>{{ date }}</strong>.
+        </p>
+        <p>Each row is a property for rental (賃貸物件) and each column shows attributes such as
+            rent, layout, area, address, etc. Among these, three columns deserve special attention:
+        </p>
+        <ul>
+            <li><strong>monthly_cost</strong>: the actual rent plus the administration fee (in JPY),
+                as advertised by the broker.</li>
+            <li><strong>monthly_cost_predicted</strong>: the predicted monthly cost (in JPY), based
+                on a regression model trained on historical data that estimates how much the property
+                would cost given its area, layout, location and such.</li>
+            <li><strong>otokuna_score</strong>: the predicted to actual ratio, e.g. a score of 2 means
+                that the predicted value is twice the actual value. The higher this value, the better
+                a deal we believe the property is because it is supposed to be more expensive than what
+                is being advertised.</li>
+        </ul>
+        <p>The table is rendered by <a href="https://github.com/man-group/dtale">DTale</a>.
+            You can interact with it by scrolling along the rows and columns and
+            clicking the headers or the menu button on the top-left corner. You
+            can sort, filter, apply heatmaps and do many more things. For for more
+            information on all the things you can do with DTale tables please refer
+            to this <a href="https://github.com/man-group/dtale/#dimensionsmain-menu">link</a>.
+        </p>
+    </div>
+</section>
+<iframe class="dtalegrid" src="/dtale/iframe/{{ data_id }}"></iframe>
+{% endblock %}

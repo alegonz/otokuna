@@ -1,0 +1,5 @@
+config/config.yml
+config/nginx.conf
+secrets
+pkg-build
+*.deb

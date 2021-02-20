@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+VENV_PATH=/opt/otokuna-web-server/venv
+python3 -m venv create ${VENV_PATH}
+
+PIPCMD="${VENV_PATH}/bin/pip install"
+${PIPCMD} wheel
+${PIPCMD} -r /opt/otokuna-web-server/requirements/app.txt
+
+# We run the gunicorn process as www-data so we give it ownership of the log folder
+chown www-data:www-data /var/log/otokuna-web-server
+
+systemctl enable otokuna-web-server.service

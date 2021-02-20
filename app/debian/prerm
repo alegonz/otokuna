@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+systemctl disable otokuna-web-server.service
+systemctl stop otokuna-web-server.service
+rm -rf /opt/otokuna-web-server/venv

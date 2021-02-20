@@ -1,0 +1,75 @@
+<!-- templates/index.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="columns">
+    <div class="column">
+        <section class="section">
+            <div class="content">
+                <p>Welcome to the otokuna web app!
+                </p>
+                <p>This app is a tool to aid finding good deals of rental properties. It keeps track
+                    of the rental properties published daily and provides estimates of their monthly
+                    cost.
+                </p>
+                <p>Currently it is limited to properties from the 23 wards of Tokyo as published by
+                    <a href="https://suumo.jp">SUUMO</a>.
+                </p>
+                <p>Please select a date from the highlighted dates in the calendar to see the predictions
+                    for properties published on that day.
+                </p>
+                <p>
+                    <strong>Notes:</strong>
+                    <ul>
+                        <li>Each date may take a few seconds to load the first time.</li>
+                        <li>Each date becomes available at around 21:00 JST (12:00 UTC).</li>
+                    </ul>
+                </p>
+            </div>
+        </section>
+    </div>
+    <div class="column">
+        <section class="section">
+            <link rel="stylesheet" href="{{ url_for('static_vendor', filename='bulma-calendar.min.css') }}">
+            <script src="{{ url_for('static_vendor', filename='bulma-calendar.min.js') }}"></script>
+            <input id="datepicker" class="input" type="date"
+                   data-display-mode="inline" data-color="info" data-show-header="false" data-show-clear-button="false">
+            <script>
+                let calendars = bulmaCalendar.attach("#datepicker", {
+                    highlightedDates: [
+                        {% for date in prediction_dates %}
+                        new Date("{{date}}"),
+                        {% endfor %}
+                    ]
+                });
+                let calendar = calendars[0];
+                calendar.datePicker.on("select", event => {
+                    let date = event.data.date.start;
+                    const offset = date.getTimezoneOffset();
+                    date = new Date(date.getTime() - (offset*60*1000));
+                    let date_str = date.toISOString().split('T')[0];
+                    window.location.href = "{{ url_for('load_predictions', date='__DATE__') }}".replace("__DATE__", date_str)
+                 });
+            </script>
+            <form method="POST" action="/">
+                <input class="button" type="submit" value="Refresh dates">
+            </form>
+        </section>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="content has-text-centered">
+        <p>
+            Built by <a href="https://github.com/alegonz">Alejandro González</a>.
+        </p>
+        <a href="https://bulma.io">
+            <img
+            src="https://bulma.io/images/made-with-bulma.png"
+            alt="Made with Bulma"
+            width="128"
+            height="24">
+        </a>
+    </div>
+</footer>
+{% endblock %}

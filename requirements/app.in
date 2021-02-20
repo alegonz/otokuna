@@ -1,0 +1,12 @@
+-c svc.txt
+boto3
+dtale
+flask
+flask-login
+Flask-WTF
+gunicorn
+pandas
+pyyaml
+redislite
+werkzeug
+WTForms

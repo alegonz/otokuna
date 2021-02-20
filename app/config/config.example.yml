@@ -1,0 +1,11 @@
+# Parameters for the Flask app
+secret_key: "some_key"
+root_user_id: "some_id"
+root_password_hash: "some_hash"
+state_data_path: "/tmp/dtale_data"
+bucket_name: "mybucket"
+scraped_data_key_prefix: "dumped_data/daily"
+scraped_data_key_template: "{}/東京都.pickle"  # relative to scraped_data_key_prefix
+predictions_key_prefix: "predictions/daily"
+prediction_key_template: "{}/prediction.pickle"  # relative to predictions_key_prefix
+prediction_key_pattern: "(.*)/prediction.pickle"  # relative to predictions_key_prefix

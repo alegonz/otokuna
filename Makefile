@@ -20,9 +20,13 @@ $(PIP_COMPILE): | $(VENV)
 requirements/svc.txt: requirements/svc.in libs/setup.py | $(PIP_COMPILE)
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) $(PIP_COMPILE_ARGS) -q --output-file $@ $<
 
-requirements/dev.txt: requirements/dev.in requirements/svc.txt | $(PIP_COMPILE)
+requirements/app.txt: requirements/app.in requirements/svc.txt | $(PIP_COMPILE)
 	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) $(PIP_COMPILE_ARGS) -q --output-file $@ $<
+
+requirements/dev.txt: requirements/dev.in requirements/svc.txt requirements/app.txt | $(PIP_COMPILE)
+	CUSTOM_COMPILE_COMMAND="make $@" $(PIP_COMPILE) $(PIP_COMPILE_ARGS) -q --output-file $@ $<
+
 
 .PHONY: setup
 setup: venv
-	$(VENV)/pip install -r requirements/svc.txt -r requirements/dev.txt
+	$(VENV)/pip install -r requirements/svc.txt -r requirements/app.txt -r requirements/dev.txt

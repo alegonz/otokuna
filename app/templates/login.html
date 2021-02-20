@@ -1,0 +1,45 @@
+<!-- templates/login.html -->
+<!-- Based on the original from https://github.com/PrettyPrinted/flask_auth_scotch -->
+{% extends "base.html" %}
+
+{% block login %}
+<section class="hero is-info is-fullheight">
+    <div class="hero-body">
+        <div class="container has-text-centered">
+            <div class="column is-4 is-offset-4">
+                <h3 class="title">Login</h3>
+                <div class="box">
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="notification is-danger">
+                            {{ messages[0] }}
+                        </div>
+                    {% endif %}
+                    {% endwith %}
+                    <form method="POST" action="/login">
+                        {{ form.csrf_token }}
+                        <div class="field">
+                            <div class="control">
+                                {{ form.user_id(class="input is-large") }}
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                {{ form.password(class="input is-large") }}
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="checkbox">
+                                {{ form.remember_me() }}
+                                Remember me
+                            </label>
+                        </div>
+                        <button class="button is-block is-info is-large is-fullwidth">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
