@@ -11,6 +11,9 @@ on [Gunicorn](https://gunicorn.org) with [Nginx](https://www.nginx.com) as a rev
 ## Running the web app locally
 
 1. Install the dependencies in the [requirements file](../requirements/app.txt).
+
+        ~$ pip install -r ../requirements/app.txt
+
 2. Run the web app with the following command:
     
         ~$ OTOKUNA_CONFIG_FILE=config/config.yml gunicorn app:app

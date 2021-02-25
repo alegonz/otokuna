@@ -29,4 +29,4 @@ requirements/dev.txt: requirements/dev.in requirements/svc.txt requirements/app.
 
 .PHONY: setup
 setup: venv
-	$(VENV)/pip install -r requirements/svc.txt -r requirements/app.txt -r requirements/dev.txt
+	$(VENV)/pip install -r requirements/svc.txt -r requirements/dev.txt
