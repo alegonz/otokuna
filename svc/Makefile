@@ -71,6 +71,10 @@ deploy: _sls_deps _pull_model _clean_sls_py_req
 invoke:
 	sls invoke --log --function $(FUNCTION) --path $(INPUT_JSON) $(SERVERLESS_ARGS)
 
+.PHONY: invoke-stepf
+invoke-stepf:
+	sls invoke stepf --name DumpMachine --path $(INPUT_JSON) $(SERVERLESS_ARGS)
+
 .PHONY: remove
 remove: | serverless
 	sls remove $(SERVERLESS_ARGS)
