@@ -10,7 +10,7 @@
 # * kebab-case for service and function names
 #   - e.g. dump-svc, generate-base-path
 
-service: dump-svc
+service: predict-svc
 app: otokuna
 # org: is passed via command-line arg
 
@@ -97,7 +97,7 @@ functions:
 
 stepFunctions:
   stateMachines:
-    DumpMachine:
+    PredictMachine:
       events:
         - schedule:
             rate: ${self:custom.rate}
