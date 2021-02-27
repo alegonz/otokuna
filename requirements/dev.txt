@@ -57,7 +57,7 @@ commonmark==0.9.1
     # via rich
 configobj==5.0.6
     # via dvc
-cryptography==3.3.1
+cryptography==3.4.6
     # via
     #   moto
     #   python-jose
@@ -301,7 +301,6 @@ six==1.15.0
     #   catboost
     #   cfn-lint
     #   configobj
-    #   cryptography
     #   cycler
     #   docker
     #   ecdsa
