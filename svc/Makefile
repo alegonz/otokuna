@@ -67,7 +67,7 @@ package: _sls_deps _pull_model _clean_sls_py_req
 deploy: _sls_deps _pull_model _clean_sls_py_req
 	sls deploy $(SERVERLESS_ARGS)
 
-.PHONY:
+.PHONY: invoke
 invoke:
 	sls invoke --log --function $(FUNCTION) --path $(INPUT_JSON) $(SERVERLESS_ARGS)
 
@@ -86,6 +86,7 @@ remove: | serverless
 #
 # Note that AWS_CLIENT_TIMEOUT=600000 is set so that serverless' client
 # is not closed before long-running lambdas finish.
+.PHONY: invoke-batch
 invoke-batch:
 	while read d; do \
   	echo processing $${d}; \
