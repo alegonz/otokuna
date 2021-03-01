@@ -2,6 +2,10 @@ scrape-properties:
   cmd: scrape-properties data/2021-01-16T20:40:36+09:00/東京都.zip --output-filename
     data/2021-01-16T20:40:36+09:00/東京都.pickle --output-format pickle --jobs 3
   deps:
+  - path: ../libs/otokuna
+    md5: 6627570d5db405eeab014cedb8d1a675.dir
+    size: 593844
+    nfiles: 18
   - path: data/2021-01-16T20:40:36+09:00/東京都.zip
     md5: 347cb00b51813e11fd6da341945351d7
     size: 84043727
@@ -12,12 +16,16 @@ scrape-properties:
 train:
   cmd: ./train.py
   deps:
-  - path: data/2021-01-16T20:40:36+09:00/東京都.zip
-    md5: 347cb00b51813e11fd6da341945351d7
-    size: 84043727
+  - path: ../libs/otokuna
+    md5: 6627570d5db405eeab014cedb8d1a675.dir
+    size: 593844
+    nfiles: 18
+  - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
+    md5: 6401c838b9c2831d0fa8a5b2618d7bf1
+    size: 62269184
   - path: train.py
-    md5: ac92be44068332f7c4bd5b9c0fc91b53
-    size: 1885
+    md5: 9a8021819ba759203574f8d5a7cd7d15
+    size: 1962
   outs:
   - path: metrics.json
     md5: f44dac0ad4fa46162c3f8a3ff3e9c4e9

@@ -3,13 +3,15 @@ stages:
     cmd: scrape-properties data/2021-01-16T20:40:36+09:00/東京都.zip --output-filename
       data/2021-01-16T20:40:36+09:00/東京都.pickle --output-format pickle --jobs 3
     deps:
+    - ../libs/otokuna
     - data/2021-01-16T20:40:36+09:00/東京都.zip
     outs:
     - data/2021-01-16T20:40:36+09:00/東京都.pickle
   train:
     cmd: ./train.py
     deps:
-    - data/2021-01-16T20:40:36+09:00/東京都.zip
+    - ../libs/otokuna
+    - data/2021-01-16T20:40:36+09:00/東京都.pickle
     - train.py
     outs:
     - models/regressor.cbm
