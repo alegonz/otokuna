@@ -99,6 +99,5 @@ invoke-batch:
     	--log \
 	    --function $(FUNCTION) \
 	    --data "$$(sed s/__DATE__/$${d}/ $(INPUT_JSON_TMPL))" \
-	    --stage dev \
-	    --org alegonz; \
+	    $(SERVERLESS_ARGS); \
 	done<$(DATES_FILE)
