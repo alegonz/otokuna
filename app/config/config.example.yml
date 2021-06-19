@@ -1,7 +1,10 @@
 # Parameters for the Flask app
 secret_key: "some_key"
-root_user_id: "some_id"
-root_password_hash: "some_hash"
+users:
+  - user_id: "some_id0"
+    password_hash: "some_hash0"
+  - user_id: "some_id1"
+    password_hash: "some_hash1"
 state_data_path: "/tmp/dtale_data"
 bucket_name: "mybucket"
 scraped_data_key_prefix: "dumped_data/daily"

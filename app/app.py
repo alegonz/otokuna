@@ -3,6 +3,8 @@ import datetime
 import io
 import os
 import re
+from typing import Dict, List
+
 import secrets
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,8 +29,7 @@ class Config:
     """Parameters from configuration file"""
     # Flask app
     secret_key: str
-    root_user_id: str
-    root_password_hash: str
+    users: List[Dict[str, str]]
     state_data_path: str
     bucket_name: str
     scraped_data_key_prefix: str
@@ -78,15 +79,25 @@ class User(UserMixin):
         return self.alternative_id
 
 
-# We use the user id to authenticate the login, but from there on
-# we use an alternative id that it is re-generated everytime the app
-# is restarted. Thus the user sessions will be invalidated everytime
-# the app is restarted. This is a rough way to invalidate sessions
-# when we change the password (because we restart the app to do so).
-ROOT_USER_ALTERNATIVE_ID = secrets.token_hex()
-ROOT_USER = User(CONFIG.root_user_id, CONFIG.root_password_hash, ROOT_USER_ALTERNATIVE_ID)
-USERS_BY_ID = {ROOT_USER.id: ROOT_USER}
-USERS_BY_ALTERNATIVE_ID = {ROOT_USER.alternative_id: ROOT_USER}
+def generate_users(config: Config):
+    """
+    We use the user id to authenticate the login, but from there on
+    we use an alternative id that it is re-generated everytime the app
+    is restarted. Thus the user sessions will be invalidated everytime
+    the app is restarted. This is a rough way to invalidate sessions
+    when we change the password (because we restart the app to do so).
+    """
+    users_by_id = {}
+    users_by_alternative_id = {}
+    for user_data in config.users:
+        alternative_id = secrets.token_hex()
+        user = User(user_data["user_id"], user_data["password_hash"], alternative_id)
+        users_by_id[user.id] = user
+        users_by_alternative_id[user.alternative_id] = user
+    return users_by_id, users_by_alternative_id
+
+
+USERS_BY_ID, USERS_BY_ALTERNATIVE_ID = generate_users(CONFIG)
 
 
 def download_dataframe(key):
