@@ -248,7 +248,7 @@ executable is not found.
 
 3. Run the web app with the following command:
     
-        ~$ OTOKUNA_CONFIG_FILE=config/config.yml --chdir app gunicorn app:app
+        ~$ OTOKUNA_CONFIG_FILE=config/config.yml gunicorn --chdir app --preload app:app
         
 4. The app can be accessed from the URL printed in the console.
 
