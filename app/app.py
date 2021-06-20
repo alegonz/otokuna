@@ -234,10 +234,11 @@ def load_predictions(date):
         df = load_data(date)
         _ = startup(data_id=data_id,
                     data=df,
+                    name=date,
                     ignore_duplicate=True,
                     allow_cell_edits=False,
                     inplace=True)
-    return render_template("view.html", date=date, data_id=data_id)
+    return redirect(url_for("dtale.view_iframe", data_id=data_id))
 
 
 # dtale already takes the default static path for its assets,
