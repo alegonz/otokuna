@@ -3,9 +3,9 @@ import datetime
 import io
 import os
 import re
-from typing import Dict, List
-
 import secrets
+import uuid
+from typing import Dict, List
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -51,6 +51,7 @@ BASE_PATH = Path(__file__).parent
 TEMPLATES_PATH = BASE_PATH / "templates"
 BUCKET = boto3.resource("s3").Bucket(CONFIG.bucket_name)
 ISO_DATETIMES_KEY = "iso_datetimes"
+DATAFRAMES_KEY = "dataframes"
 
 app = build_app(reaper_on=False, additional_templates=TEMPLATES_PATH)
 
@@ -111,11 +112,11 @@ def download_dataframe(key):
 def load_data(date):
     if f"{ISO_DATETIMES_KEY}:{date}" not in REDIS_DB:
         abort(404)
-    iso_datetime = REDIS_DB.get(f"{ISO_DATETIMES_KEY}:{date}")  # DtaleRedis.get already casts to str
-    data_id = iso2dataid(iso_datetime)
-    if data_id in REDIS_DB:
-        return REDIS_DB[data_id]
+    df_key = f"{DATAFRAMES_KEY}:{date}"
+    if df_key in REDIS_DB:
+        return REDIS_DB[df_key]
     # Get scraped data
+    iso_datetime = REDIS_DB.get(f"{ISO_DATETIMES_KEY}:{date}")  # DtaleRedis.get already casts to str
     key = os.path.join(CONFIG.scraped_data_key_prefix, CONFIG.scraped_data_key_template).format(iso_datetime)
     scraped_df = download_dataframe(key)
     # Get prediction data
@@ -131,6 +132,7 @@ def load_data(date):
         inplace=True,
         columns={"y": "monthly_cost", "y_pred": "monthly_cost_predicted"}
     )
+    REDIS_DB.set(df_key, df)
     return df
 
 
@@ -229,15 +231,14 @@ def index():
 
 @app.route("/prediction/<date>")
 def load_predictions(date):
-    data_id = date2dataid(date)
-    if data_id not in REDIS_DB:
-        df = load_data(date)
-        _ = startup(data_id=data_id,
-                    data=df,
-                    name=date,
-                    ignore_duplicate=True,
-                    allow_cell_edits=False,
-                    inplace=True)
+    df = load_data(date)
+    data_id = uuid.uuid4().int
+    _ = startup(data_id=data_id,
+                data=df,
+                name=date,
+                ignore_duplicate=True,
+                allow_cell_edits=False,
+                inplace=True)
     return redirect(url_for("dtale.view_iframe", data_id=data_id))
 
 
