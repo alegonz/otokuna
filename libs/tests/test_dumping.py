@@ -98,10 +98,8 @@ def test_iter_search_results(monkeypatch):
         "dummyurl&page=2": "results_last_page.html"
     }
     monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
-    monkeypatch.setattr("otokuna.dumping.build_search_url", lambda **_: "dummyurl")
     monkeypatch.setattr("otokuna.dumping.time.sleep", lambda _: _)
-
-    for page, response in iter_search_results(("マンション",), ("中央区",), True, 2):
+    for page, response in iter_search_results("dummyurl", 2):
         pass
     assert page == 2
 
@@ -110,9 +108,7 @@ def test_iter_search_results_fail(monkeypatch):
     def mock_requests_get_fail(url):
         raise Exception
     monkeypatch.setattr("otokuna.dumping.requests.get", mock_requests_get_fail)
-    monkeypatch.setattr("otokuna.dumping.build_search_url", lambda **_: "dummyurl")
     monkeypatch.setattr("otokuna.dumping.time.sleep", lambda _: _)
-
     with pytest.raises(RuntimeError):
-        for page, response in iter_search_results(("マンション",), ("中央区",), True, 2):
+        for page, response in iter_search_results("dummyurl", 2):
             pass

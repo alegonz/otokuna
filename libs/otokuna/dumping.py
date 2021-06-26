@@ -114,16 +114,13 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
     return f"{SUUMO_URL}{next_elem.parent['href']}" if next_elem else None
 
 
-def iter_search_results(building_categories: Sequence[str], wards: Sequence[str],
-                        only_today: bool, sleep_time: float,
+def iter_search_results(search_url: str, sleep_time: float,
                         logger: Optional[logging.Logger] = None) -> Iterator[Tuple[int, requests.Response]]:
-    """Iterates over the search results pages from the given search conditions.
+    """Iterates over the search results pages from the given search URL.
     Each iteration yields a tuple with the page number (one-indexed) and the
     response object of the search results page.
     """
     logger = logger or logging.getLogger('dummy')
-    search_url = build_search_url(building_categories=building_categories,
-                                  wards=wards, only_today=only_today)
     n_attempts = 3
     page = 1
     while True:
