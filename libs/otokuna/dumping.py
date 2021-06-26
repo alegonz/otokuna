@@ -127,16 +127,7 @@ def iter_search_results(search_url: str, sleep_time: float,
     page = 1
     while True:
         next_search_url = f"{search_url}&page={page}"
-        for attempt in range(n_attempts):
-            try:
-                response = requests.get(next_search_url)
-            except Exception as e:
-                logger.error(f"Could not fetch page {page} (attempt: {attempt}): {e}")
-                time.sleep(10)
-            else:
-                break
-        else:
-            raise RuntimeError(f"Could not get: {next_search_url}")
+        response = _get_page(next_search_url, page, n_attempts, logger)
         search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
         if page == 1:
             n_pages = scrape_number_of_pages(search_results_soup)
@@ -149,6 +140,20 @@ def iter_search_results(search_url: str, sleep_time: float,
             break
         page += 1
         time.sleep(sleep_time)
+
+
+def _get_page(url, page_number, n_attempts, logger):
+    for attempt in range(n_attempts):
+        try:
+            response = requests.get(url)
+        except Exception as e:
+            logger.error(f"Could not fetch page {page_number} (attempt: {attempt}): {e}")
+            time.sleep(10)
+        else:
+            break
+    else:
+        raise RuntimeError(f"Could not get: {url}")
+    return response
 
 
 def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Sequence[str],
