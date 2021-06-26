@@ -6,11 +6,11 @@ def test_main(monkeypatch):
         lambda building_categories, wards, only_today: "dummyurl"
     )
 
-    ward = "千代田区"
+    batch_name = "千代田区"
     output_bucket = "somebucket"
     base_path = "foo/bar"
     event = {
-        "ward": ward,
+        "batch_name": batch_name,
         "output_bucket": output_bucket,
         "base_path": base_path,
     }

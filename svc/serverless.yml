@@ -122,7 +122,7 @@ stepFunctions:
             ItemsPath: $.tokyo_wards
             ResultPath: $.map_result
             Parameters:
-              ward.$: $$.Map.Item.Value
+              batch_name.$: $$.Map.Item.Value
               output_bucket.$: $.output_bucket
               base_path.$: $.base_path
             Iterator:
