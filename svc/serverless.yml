@@ -63,6 +63,7 @@ package:
   exclude:
     - "**/*"
   include:
+    - build_search_url.py
     - dump_property_data.py
     - generate_base_path.py
     - zip_property_data.py
@@ -73,6 +74,10 @@ package:
 functions:
   generate-base-path:
     handler: generate_base_path.main
+    memorySize: 128
+  build-search-url:
+    handler: build_search_url.main
+    timeout: 30
     memorySize: 128
   dump-property-data:
     handler: dump_property_data.main
@@ -121,8 +126,13 @@ stepFunctions:
               output_bucket.$: $.output_bucket
               base_path.$: $.base_path
             Iterator:
-              StartAt: dump_step
+              StartAt: build_search_url_step
               States:
+                build_search_url_step:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [build-search-url, Arn]
+                  Next: dump_step
                 dump_step:
                   Type: Task
                   Resource:

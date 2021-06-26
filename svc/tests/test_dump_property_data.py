@@ -16,16 +16,16 @@ def test_main(monkeypatch):
             self.content = content
 
     def mock_iter_search_results(search_url, sleep_time, logger):
+        assert search_url == "dummyurl"
         for page, content in pages_contents:
             yield page, MockResponse(content)
 
-    # TODO: retire this when the search_url is passed via the event
-    monkeypatch.setattr("dump_property_data.build_search_url", lambda **kwargs: "dummyurl")
     monkeypatch.setattr("dump_property_data.iter_search_results", mock_iter_search_results)
 
     ward = "千代田区"
     output_bucket = "somebucket"
     base_path = "foo/bar"
+    search_url = "dummyurl"
 
     s3_client = boto3.client('s3')
     s3_client.create_bucket(Bucket=output_bucket)
@@ -34,6 +34,7 @@ def test_main(monkeypatch):
         "ward": ward,
         "output_bucket": output_bucket,
         "base_path": base_path,
+        "search_url": search_url,
     }
     event_out = dump_property_data.main(event, None)
     assert event_out is None
