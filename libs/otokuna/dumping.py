@@ -167,7 +167,9 @@ def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Se
     dump_dir = Path(f"{dump_dir}/{datetime_str}/東京都")
     dump_dir.mkdir(parents=True)
     logger = setup_logger("dump-properties", dump_dir / "dump.log")
-    for page, response in iter_search_results(building_categories, wards, only_today, sleep_time, logger):
+    search_url = build_search_url(building_categories=building_categories,
+                                  wards=wards, only_today=only_today)
+    for page, response in iter_search_results(search_url, sleep_time, logger):
         # dump html data to file
         with open(dump_dir / f"page_{page:06d}.html", "w") as f:
             f.write(response.text)
