@@ -126,13 +126,11 @@ def iter_search_results(search_url: str, sleep_time: float,
     n_attempts = 3
     page = 1
     while True:
-        next_search_url = f"{search_url}&page={page}"
-        response = _get_page(next_search_url, page, n_attempts, logger)
+        response = _get_page(search_url, page, n_attempts, logger)
         search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
         if page == 1:
             n_pages = scrape_number_of_pages(search_results_soup)
             logger.info(f"Total result pages: {n_pages}")
-        logger.info(f"Got page {page}: {next_search_url}")
 
         yield page, response
 
@@ -142,17 +140,19 @@ def iter_search_results(search_url: str, sleep_time: float,
         time.sleep(sleep_time)
 
 
-def _get_page(url, page_number, n_attempts, logger):
+def _get_page(search_url, page, n_attempts, logger):
+    search_page_url = f"{search_url}&page={page}"
     for attempt in range(n_attempts):
         try:
-            response = requests.get(url)
+            response = requests.get(search_page_url)
         except Exception as e:
-            logger.error(f"Could not fetch page {page_number} (attempt: {attempt}): {e}")
+            logger.error(f"Could not fetch page {page} (attempt: {attempt}): {e}")
             time.sleep(10)
         else:
             break
     else:
-        raise RuntimeError(f"Could not get: {url}")
+        raise RuntimeError(f"Could not get: {search_page_url}")
+    logger.info(f"Got page {page}: {search_page_url}")
     return response
 
 
