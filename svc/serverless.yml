@@ -8,7 +8,7 @@
 # * snake_case for application-specific parameters:
 #   - e.g. output_bucket
 # * kebab-case for service and function names
-#   - e.g. dump-svc, generate-base-path
+#   - e.g. dump-svc, generate-base-path-daily
 
 service: predict-svc
 app: otokuna
@@ -72,8 +72,8 @@ package:
     - ${self:custom.model_path}
 
 functions:
-  generate-base-path:
-    handler: generate_base_path.main
+  generate-base-path-daily:
+    handler: generate_base_path.main_daily
     memorySize: 128
   build-search-url:
     handler: build_search_url.main
@@ -115,7 +115,7 @@ stepFunctions:
           GenerateBasePath:
             Type: Task
             Resource:
-              Fn::GetAtt: [generate-base-path, Arn]
+              Fn::GetAtt: [generate-base-path-daily, Arn]
             Next: DumpMap
           DumpMap:
             Type: Map
