@@ -5,7 +5,8 @@ from otokuna.dumping import now_local
 
 
 def main_daily(event, context):
-    datetime_str = now_local().isoformat(timespec="seconds")
+    now = now_local()
+    datetime_str = now.isoformat(timespec="seconds")
     # TODO: Retire the dumped_data/predictions division after we revise
     #  the logic to store the dumped data and the predictions together.
     #  Retire base_path, and keep root_key which will eventually be something
@@ -14,6 +15,7 @@ def main_daily(event, context):
     root_key = Path("predictions") / "daily" / datetime_str
     event["base_path"] = str(base_path)
     event["root_key"] = str(root_key)
+    event["timestamp"] = now.timestamp()
     return event
 
 
@@ -28,4 +30,5 @@ def main_user_requested(event, context):
     event["job_id"] = job_id
     event["base_path"] = str(base_path)
     event["root_key"] = str(root_key)
+    event["timestamp"] = now_local().timestamp()
     return event
