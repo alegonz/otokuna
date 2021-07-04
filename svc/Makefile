@@ -73,7 +73,7 @@ invoke:
 
 .PHONY: invoke-stepf
 invoke-stepf:
-	sls invoke stepf --name PredictMachine --path $(INPUT_JSON) $(SERVERLESS_ARGS)
+	sls invoke stepf --name PredictDailyMachine --path $(INPUT_JSON) $(SERVERLESS_ARGS)
 
 .PHONY: remove
 remove: | serverless
