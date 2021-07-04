@@ -150,6 +150,17 @@ def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str
     return f"{SUUMO_URL}{next_elem.parent['href']}" if next_elem else None
 
 
+def scrape_search_conditions(search_results_soup: bs4.BeautifulSoup) -> str:
+    """Scrape the (human readable) search conditions from a results page."""
+    p = (
+        # long case: text is partially and is fully shown via a toggle button
+        search_results_soup.find("p", class_="conditionbox-info-txt conditionbox-info-txt--all")
+        # short case: text is fully visible
+        or search_results_soup.find("p", class_="conditionbox-info-txt")
+    )
+    return list(p.stripped_strings)[0]
+
+
 def iter_search_results(search_url: str, sleep_time: float,
                         logger: Optional[logging.Logger] = None) -> Iterator[Tuple[int, requests.Response]]:
     """Iterates over the search results pages from the given search URL.

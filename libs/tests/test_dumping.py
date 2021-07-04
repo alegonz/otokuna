@@ -8,7 +8,7 @@ import pytest
 from otokuna.dumping import (
     _get_condition_codes_by_value, _build_condition_codes,
     build_search_url, iter_search_results,
-    scrape_number_of_pages, scrape_next_page_url,
+    scrape_number_of_pages, scrape_next_page_url, scrape_search_conditions,
     add_params, remove_params,
     add_results_per_page_param, remove_page_param,
     SUUMO_TOKYO_SEARCH_URL
@@ -118,6 +118,16 @@ def test_scrape_next_page_url(page_filename, expected):
     with open(DATA_DIR / page_filename) as f:
         search_results_soup = bs4.BeautifulSoup(f, "html.parser")
     assert scrape_next_page_url(search_results_soup) == expected
+
+
+@pytest.mark.parametrize("page_filename,expected", [
+    ("results_page_short_conditions.html", "東京メトロ銀座線／虎ノ門 東京メトロ丸ノ内線／銀座 1LDK"),
+    ("results_page_long_conditions.html", "東京メトロ銀座線／虎ノ門 東京メトロ丸ノ内線／銀座 1LDK 30m2以上 オートロック"),
+])
+def test_scrape_search_conditions(page_filename, expected):
+    with open(DATA_DIR / page_filename) as f:
+        search_results_soup = bs4.BeautifulSoup(f, "html.parser")
+    assert scrape_search_conditions(search_results_soup) == expected
 
 
 def test_iter_search_results(monkeypatch):
