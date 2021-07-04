@@ -5,4 +5,5 @@
 asks
 beautifulsoup4
 onnxruntime
+requests
 trio

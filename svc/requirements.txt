@@ -52,7 +52,9 @@ python-dateutil==2.8.1
 pytz==2020.5
     # via pandas
 requests==2.25.1
-    # via otokuna
+    # via
+    #   -r requirements/svc.in
+    #   otokuna
 six==1.15.0
     # via
     #   protobuf
