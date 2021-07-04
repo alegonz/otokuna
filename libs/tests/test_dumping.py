@@ -9,24 +9,13 @@ from otokuna.dumping import (
     build_search_url, scrape_number_of_pages, scrape_next_page_url,
     iter_search_results, SUUMO_TOKYO_SEARCH_URL
 )
+from otokuna.testing import build_mock_requests_get
 
 DATA_DIR = Path(__file__).parent / "data"
 
 EXPECTED_CODES_BY_VALUE = json.loads(
     (DATA_DIR / "expected_codes_by_value.json").read_text()
 )
-
-
-def build_mock_requests_get(html_files_by_url):
-    def mock_requests_get(url):
-        class MockResponse:
-            def __init__(self, text):
-                self.text = text
-
-        with open(DATA_DIR / html_files_by_url[url]) as f:
-            response = MockResponse(f.read())
-        return response
-    return mock_requests_get
 
 
 @pytest.mark.parametrize("cond_id", ["ts", "sc", "tc"])
@@ -37,7 +26,7 @@ def test_get_condition_codes_by_value(cond_id):
 
 
 def test_build_condition_codes(monkeypatch):
-    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: "chintai_tokyo_search_page.html"}
+    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: DATA_DIR / "chintai_tokyo_search_page.html"}
     monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
 
     expected = {
@@ -49,7 +38,7 @@ def test_build_condition_codes(monkeypatch):
 
 
 def test_build_condition_codes_invalid_value(monkeypatch):
-    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: "chintai_tokyo_search_page.html"}
+    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: DATA_DIR / "chintai_tokyo_search_page.html"}
     monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
 
     expected_error_msg = "invalid values for condition sc: {'あいうえお区'}"
@@ -58,7 +47,7 @@ def test_build_condition_codes_invalid_value(monkeypatch):
 
 
 def test_build_search_url(monkeypatch):
-    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: "chintai_tokyo_search_page.html"}
+    html_files_by_url = {SUUMO_TOKYO_SEARCH_URL: DATA_DIR / "chintai_tokyo_search_page.html"}
     monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
 
     search_url = build_search_url(building_categories=["マンション"],
@@ -94,8 +83,8 @@ def test_scrape_next_page_url(page_filename, expected):
 
 def test_iter_search_results(monkeypatch):
     html_files_by_url = {
-        "dummyurl&page=1": "results_first_page.html",
-        "dummyurl&page=2": "results_last_page.html"
+        "dummyurl&page=1": DATA_DIR / "results_first_page.html",
+        "dummyurl&page=2": DATA_DIR / "results_last_page.html"
     }
     monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
     monkeypatch.setattr("otokuna.dumping.time.sleep", lambda _: _)
