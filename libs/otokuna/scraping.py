@@ -173,6 +173,20 @@ def get_last_modified_at_timestamp(filename: Union[Path, ZipInfo]) -> float:
         raise ValueError("Invalid filename type.")
 
 
+def scrape_number_of_pages(search_results_soup: bs4.BeautifulSoup) -> int:
+    """Scrape the total number of search pages from a results page."""
+    page_links = search_results_soup.select("ol.pagination-parts li a")
+    # Beware of this number; the number of results might change while scraping?
+    last_page_number = int(page_links[-1].text)
+    return last_page_number
+
+
+def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str]:
+    """Scrape the url of the next page from a results page."""
+    next_elem = search_results_soup.find("div", class_="pagination pagination_set-nav").find(string="次へ")
+    return f"{SUUMO_URL}{next_elem.parent['href']}" if next_elem else None
+
+
 # attrs does not play well with cloudpickle (required by joblib)
 # See: https://github.com/python-attrs/attrs/issues/458
 @attr.dataclass(repr=False)

@@ -6,7 +6,7 @@ import boto3
 import bs4
 import trio
 
-from otokuna.dumping import scrape_number_of_pages
+from otokuna.scraping import scrape_number_of_pages
 from otokuna.logging import setup_logger
 
 
