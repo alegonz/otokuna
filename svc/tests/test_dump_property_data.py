@@ -1,28 +1,43 @@
 import boto3
 import pytest
+import trio
 from moto import mock_s3
+from trio.testing import trio_test
 
 import dump_property_data
 
+PAGE_PARAM = "&page="
 
+NUMBER_OF_PAGES = 22
+# Minimum content necessary to scrape the number of pages
+SEARCH_PAGE_CONTENT = f"""
+<ol class="pagination-parts">
+<li><a>{NUMBER_OF_PAGES}</a></li>
+</ol>
+"""
+
+
+# Cannot use pytest.mark.trio with moto_s3
+# See related issue: https://github.com/python-trio/pytest-trio/issues/42
 @mock_s3
+@trio_test
 @pytest.mark.parametrize("batch_name", ["千代田区", None])
-def test_main(batch_name, monkeypatch):
-    pages_contents = [
-        (1, b"foo"),
-        (2, b"bar")
-    ]
+async def test_main_async(batch_name, monkeypatch):
 
     class MockResponse:
-        def __init__(self, content):
-            self.content = content
+        def __init__(self, url, text):
+            self.url = url
+            self.text = text
+            self.content = text.encode()
 
-    def mock_iter_search_results(search_url, sleep_time, logger):
-        assert search_url == "dummyurl"
-        for page, content in pages_contents:
-            yield page, MockResponse(content)
+    async def mock_get(url, timeout=None, retries=1):
+        await trio.sleep(0)
+        if PAGE_PARAM not in url:
+            return MockResponse(url, SEARCH_PAGE_CONTENT)
+        # The content is a string with the page number
+        return MockResponse(url, url.split(PAGE_PARAM)[-1])
 
-    monkeypatch.setattr("dump_property_data.iter_search_results", mock_iter_search_results)
+    monkeypatch.setattr("dump_property_data.asks.get", mock_get)
 
     output_bucket = "somebucket"
     base_path = "foo/bar"
@@ -42,10 +57,15 @@ def test_main(batch_name, monkeypatch):
     else:
         expected_dump_path = base_path
 
-    event_out = dump_property_data.main(event, None)
+    event_out = await dump_property_data.main_async(event, None)
     assert event_out is None
 
     objects = s3_client.list_objects_v2(Bucket=output_bucket)["Contents"]
-    for (page, content), obj in zip(pages_contents, objects):
-        assert obj["Key"] == f"{expected_dump_path}/page_{page:06d}.html"
-        assert s3_client.get_object(Bucket=output_bucket, Key=obj["Key"])["Body"].read() == content
+    keys = []
+    for obj in objects:
+        key = obj["Key"]
+        content = s3_client.get_object(Bucket=output_bucket, Key=key)["Body"].read()
+        page = int(content)
+        assert key == f"{expected_dump_path}/page_{page:06d}.html"
+        keys.append(key)
+    assert len(keys) == NUMBER_OF_PAGES

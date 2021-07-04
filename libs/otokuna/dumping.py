@@ -67,6 +67,7 @@ def _build_condition_codes(
 def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str], only_today=True):
     """Build search url for properties in Tokyo (東京)
     TODO: support arbitrary cities
+    TODO: precompute condition codes
 
     :param building_categories
     :param wards

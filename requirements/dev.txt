@@ -6,13 +6,20 @@
 #
 appdirs==1.4.4
     # via dvc
+async-generator==1.10
+    # via
+    #   -c requirements/svc.txt
+    #   pytest-trio
+    #   trio
 atpublic==2.1.2
     # via flufl.lock
 attrs==20.3.0
     # via
     #   -c requirements/svc.txt
     #   jsonschema
+    #   outcome
     #   pytest
+    #   trio
 aws-sam-translator==1.33.0
     # via cfn-lint
 aws-xray-sdk==2.6.0
@@ -115,6 +122,7 @@ idna==2.10
     #   -c requirements/svc.txt
     #   moto
     #   requests
+    #   trio
 iniconfig==1.1.1
     # via pytest
 jinja2==2.11.2
@@ -174,6 +182,11 @@ numpy==1.19.5
     #   matplotlib
     #   pandas
     #   scipy
+outcome==1.1.0
+    # via
+    #   -c requirements/svc.txt
+    #   pytest-trio
+    #   trio
 packaging==20.8
     # via
     #   dvc
@@ -225,8 +238,12 @@ pyparsing==2.4.7
     #   pydot
 pyrsistent==0.17.3
     # via jsonschema
-pytest==6.2.1
+pytest-trio==0.7.0
     # via -r requirements/dev.in
+pytest==6.2.1
+    # via
+    #   -r requirements/dev.in
+    #   pytest-trio
 python-benedict==0.23.2
     # via dvc
 python-dateutil==2.8.1
@@ -319,6 +336,14 @@ six==1.15.0
     #   websocket-client
 smmap==3.0.5
     # via gitdb
+sniffio==1.2.0
+    # via
+    #   -c requirements/svc.txt
+    #   trio
+sortedcontainers==2.4.0
+    # via
+    #   -c requirements/svc.txt
+    #   trio
 sshpubkeys==3.1.0
     # via moto
 tabulate==0.8.7
@@ -332,6 +357,11 @@ toml==0.10.2
     #   python-benedict
 tqdm==4.56.0
     # via dvc
+trio==0.19.0
+    # via
+    #   -c requirements/svc.txt
+    #   -r requirements/dev.in
+    #   pytest-trio
 typing-extensions==3.7.4.3
     # via
     #   dvc

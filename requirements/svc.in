@@ -2,4 +2,7 @@
 # See: https://github.com/jazzband/pip-tools/issues/204#issuecomment-550051424
 -e file:libs#egg=otokuna
 # boto3 is already installed in the lambda runtime
+asks
+beautifulsoup4
 onnxruntime
+trio

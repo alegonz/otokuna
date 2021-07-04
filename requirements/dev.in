@@ -8,3 +8,5 @@ dvc
 freezegun
 moto[s3]
 pytest
+pytest-trio
+trio
