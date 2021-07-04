@@ -10,18 +10,21 @@ from otokuna.dumping import scrape_number_of_pages
 from otokuna.logging import setup_logger
 
 
+# Sometimes Suumo takes several seconds to respond, but, instead
+# of setting a timeout for asks.get we instead try for as long as
+# possible, until the hard timeout of Lambda expires.
 async def get_page(search_url, page):
     search_page_url = f"{search_url}&page={page}"
     try:
-        response = await asks.get(search_page_url, timeout=30, retries=3)
+        response = await asks.get(search_page_url, retries=3)
     except Exception as e:
         # TODO: catch specific exceptions
-        raise RuntimeError(f"Could not fetch page {page}: {e}")
+        raise RuntimeError(f"Could not fetch page {page}") from e
     return response
 
 
 async def get_number_of_pages(search_url):
-    response = await asks.get(search_url)
+    response = await asks.get(search_url, retries=3)
     search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
     return scrape_number_of_pages(search_results_soup)
 
