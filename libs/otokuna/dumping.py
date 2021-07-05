@@ -6,6 +6,7 @@ import logging
 import time
 from pathlib import Path
 from typing import Optional, Sequence, Dict, Set, Tuple, Iterator
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import bs4
 import requests
@@ -63,6 +64,17 @@ def _build_condition_codes(
                 raise RuntimeError(f"invalid values for condition {cond_id}: {values_not_found}")
             condition_codes[cond_id] = {code for value, code in codes_by_value.items() if value in values}
     return condition_codes
+
+
+def drop_page_query(url):
+    """Drop page query from given url
+    Based on: https://stackoverflow.com/a/7734686
+    """
+    u = urlparse(url)
+    query = parse_qs(u.query, keep_blank_values=True)
+    query.pop("page", None)
+    u2 = u._replace(query=urlencode(query, doseq=True))
+    return urlunparse(u2)
 
 
 def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str], only_today=True):
@@ -131,6 +143,7 @@ def iter_search_results(search_url: str, sleep_time: float,
 
 
 def _get_page(search_url, page, n_attempts, logger):
+    search_url = drop_page_query(search_url)
     search_page_url = f"{search_url}&page={page}"
     for attempt in range(n_attempts):
         try:

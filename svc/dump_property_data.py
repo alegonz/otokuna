@@ -5,7 +5,7 @@ import asks
 import boto3
 import bs4
 import trio
-
+from otokuna.dumping import drop_page_query
 from otokuna.scraping import scrape_number_of_pages
 from otokuna.logging import setup_logger
 
@@ -14,6 +14,7 @@ from otokuna.logging import setup_logger
 # of setting a timeout for asks.get we instead try for as long as
 # possible, until the hard timeout of Lambda expires.
 async def get_page(search_url, page):
+    search_url = drop_page_query(search_url)
     search_page_url = f"{search_url}&page={page}"
     try:
         response = await asks.get(search_page_url, retries=3)
