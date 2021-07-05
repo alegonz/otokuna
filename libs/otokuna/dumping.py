@@ -13,7 +13,6 @@ import requests
 
 from otokuna import SUUMO_URL
 from otokuna.logging import setup_logger, LOCAL_TIMEZONE
-from otokuna.scraping import scrape_number_of_pages, scrape_next_page_url
 
 TOKYO_SPECIAL_WARDS = (
     "千代田区", "中央区", "港区", "新宿区", "文京区", "台東区", "墨田区", "江東区",
@@ -114,6 +113,18 @@ def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str]
     query = parse_qs(u.query, keep_blank_values=True)
     query.update(condition_codes)
     return urlunparse(u._replace(query=urlencode(query, doseq=True)))
+
+
+def scrape_number_of_pages(search_results_soup: bs4.BeautifulSoup) -> int:
+    page_links = search_results_soup.select("ol.pagination-parts li a")
+    # Beware of this number; the number of results might change while scraping?
+    last_page_number = int(page_links[-1].text)
+    return last_page_number
+
+
+def scrape_next_page_url(search_results_soup: bs4.BeautifulSoup) -> Optional[str]:
+    next_elem = search_results_soup.find("div", class_="pagination pagination_set-nav").find(string="次へ")
+    return f"{SUUMO_URL}{next_elem.parent['href']}" if next_elem else None
 
 
 def iter_search_results(search_url: str, sleep_time: float,

@@ -5,8 +5,8 @@ import asks
 import boto3
 import bs4
 import trio
-from otokuna.dumping import drop_page_query
-from otokuna.scraping import scrape_number_of_pages
+
+from otokuna.dumping import drop_page_query, scrape_number_of_pages
 from otokuna.logging import setup_logger
 
 

@@ -7,7 +7,9 @@ import pytest
 
 from otokuna.dumping import (
     _get_condition_codes_by_value, _build_condition_codes,
-    build_search_url, iter_search_results, SUUMO_TOKYO_SEARCH_URL, drop_page_query
+    build_search_url, iter_search_results, drop_page_query,
+    scrape_number_of_pages, scrape_next_page_url,
+    SUUMO_TOKYO_SEARCH_URL
 )
 from otokuna.testing import build_mock_requests_get
 
@@ -71,6 +73,28 @@ def test_build_search_url(monkeypatch):
         "tc": ["0401303"],
     }
     assert expected_query.items() <= parse_qs(urlparse(search_url).query, keep_blank_values=True).items()
+
+
+def test_scrape_number_of_pages():
+    with open(DATA_DIR / "results_first_page.html") as f:
+        search_results_soup = bs4.BeautifulSoup(f, "html.parser")
+    assert scrape_number_of_pages(search_results_soup) == 1607
+
+
+@pytest.mark.parametrize("page_filename,expected", [
+    ("results_first_page.html", "https://suumo.jp/jj/chintai/ichiran/FR301FC001/"
+                                "?ts=1&sc=13115&sc=13107&sc=13118&sc=13110&sc=13120"
+                                "&sc=13109&sc=13123&sc=13103&sc=13113&sc=13122&sc=13104"
+                                "&sc=13112&sc=13121&sc=13111&sc=13106&sc=13102&sc=13116"
+                                "&sc=13101&sc=13117&sc=13108&sc=13119&sc=13105&sc=13114"
+                                "&ar=030&bs=040&ta=13&cb=0.0&ct=9999999&mb=0&mt=9999999"
+                                "&et=9999999&cn=9999999&pc=50&page=2"),
+    ("results_last_page.html", None),
+])
+def test_scrape_next_page_url(page_filename, expected):
+    with open(DATA_DIR / page_filename) as f:
+        search_results_soup = bs4.BeautifulSoup(f, "html.parser")
+    assert scrape_next_page_url(search_results_soup) == expected
 
 
 def test_iter_search_results(monkeypatch):

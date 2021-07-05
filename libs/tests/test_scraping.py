@@ -2,7 +2,6 @@ import zipfile
 from functools import partial
 from pathlib import Path
 
-import bs4
 import numpy as np
 import pandas as pd
 import pytest
@@ -11,7 +10,6 @@ from _pytest.python_api import RaisesContext
 from otokuna.scraping import (
     parse_address, parse_age, parse_area, parse_floor_range,
     parse_floors, parse_layout, parse_money, parse_transportation,
-    scrape_number_of_pages, scrape_next_page_url,
     make_properties_dataframe, scrape_properties_from_file,
     ParsingError, Property, Building, Room,
     _timestamp_to_zipinfo_date_time,
@@ -115,28 +113,6 @@ def test_parse_money(money, unit, expected):
 ])
 def test_parse_transportation(transportation, expected):
     assert_parse(parse_transportation, transportation, expected)
-
-
-def test_scrape_number_of_pages():
-    with open(DATA_DIR / "results_first_page.html") as f:
-        search_results_soup = bs4.BeautifulSoup(f, "html.parser")
-    assert scrape_number_of_pages(search_results_soup) == 1607
-
-
-@pytest.mark.parametrize("page_filename,expected", [
-    ("results_first_page.html", "https://suumo.jp/jj/chintai/ichiran/FR301FC001/"
-                                "?ts=1&sc=13115&sc=13107&sc=13118&sc=13110&sc=13120"
-                                "&sc=13109&sc=13123&sc=13103&sc=13113&sc=13122&sc=13104"
-                                "&sc=13112&sc=13121&sc=13111&sc=13106&sc=13102&sc=13116"
-                                "&sc=13101&sc=13117&sc=13108&sc=13119&sc=13105&sc=13114"
-                                "&ar=030&bs=040&ta=13&cb=0.0&ct=9999999&mb=0&mt=9999999"
-                                "&et=9999999&cn=9999999&pc=50&page=2"),
-    ("results_last_page.html", None),
-])
-def test_scrape_next_page_url(page_filename, expected):
-    with open(DATA_DIR / page_filename) as f:
-        search_results_soup = bs4.BeautifulSoup(f, "html.parser")
-    assert scrape_next_page_url(search_results_soup) == expected
 
 
 @pytest.mark.parametrize("zipped", [False, True])
