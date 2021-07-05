@@ -6,8 +6,6 @@ from trio.testing import trio_test
 
 import dump_property_data
 
-PAGE_PARAM = "&page="
-
 NUMBER_OF_PAGES = 22
 # Minimum content necessary to scrape the number of pages
 SEARCH_PAGE_CONTENT = f"""
@@ -23,6 +21,14 @@ SEARCH_PAGE_CONTENT = f"""
 @trio_test
 @pytest.mark.parametrize("batch_name", ["千代田区", None])
 async def test_main_async(batch_name, monkeypatch):
+    output_bucket = "somebucket"
+    base_path = "foo/bar"
+    search_url = "dummyurl"
+
+    # Mock pages
+    html_text_by_url = {search_url: SEARCH_PAGE_CONTENT}
+    for page in range(1, NUMBER_OF_PAGES + 1):
+        html_text_by_url[f"{search_url}&page={page}"] = str(page)
 
     class MockResponse:
         def __init__(self, url, text):
@@ -32,16 +38,9 @@ async def test_main_async(batch_name, monkeypatch):
 
     async def mock_get(url, timeout=None, retries=1):
         await trio.sleep(0)
-        if PAGE_PARAM not in url:
-            return MockResponse(url, SEARCH_PAGE_CONTENT)
-        # The content is a string with the page number
-        return MockResponse(url, url.split(PAGE_PARAM)[-1])
+        return MockResponse(url, html_text_by_url[url])
 
     monkeypatch.setattr("dump_property_data.asks.get", mock_get)
-
-    output_bucket = "somebucket"
-    base_path = "foo/bar"
-    search_url = "dummyurl"
 
     s3_client = boto3.client('s3')
     s3_client.create_bucket(Bucket=output_bucket)
