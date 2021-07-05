@@ -89,7 +89,7 @@ def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str]
 
     Notes:
     FR301FC001 directs to 物件ごとに表示
-    &ar=030&bs=040&ta=13 are some hidden inputs (don't know what they mean)
+    &ar=030&bs=040&ta=13 are some hidden inputs (don't know what these mean)
     &cb=0.0 means 賃料：下限なし
     &ct=9999999 means 賃料：上限なし
     &mb=0 means 専有面積：下限なし
@@ -97,25 +97,23 @@ def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str]
     &et=9999999 means 駅徒歩：指定しない
     &cn=9999999 means 築年数：指定しない
     &shkr1=03&shkr2=03&shkr3=03&shkr4=03 don't know what these mean
-    &sngz= don't know what this mean
-    &po1=25 don't know what this mean
+    &sngz= don't know what this means
+    &po1=25 don't know what this means
     &pc=50 means 50 results per page
     """
-    search_url_template = f"{SUUMO_URL}/jj/chintai/ichiran/FR301FC001/" \
-                          f"?{{}}" \
-                          f"&ar=030&bs=040&ta=13" \
-                          f"&cb=0.0&ct=9999999" \
-                          f"&mb=0&mt=9999999" \
-                          f"&et=9999999&cn=9999999" \
-                          f"&pc=50"
+    base_search_url = f"{SUUMO_URL}/jj/chintai/ichiran/FR301FC001/?" \
+                      f"&ar=030&bs=040&ta=13" \
+                      f"&cb=0.0&ct=9999999" \
+                      f"&mb=0&mt=9999999" \
+                      f"&et=9999999&cn=9999999" \
+                      f"&pc=50"
     special_conditions = {"本日の新着物件"} if only_today else None
     condition_codes = _build_condition_codes(building_categories, wards, special_conditions)
 
-    url_params = []
-    for cond_id, codes in condition_codes.items():
-        for code in codes:
-            url_params.append(f"{cond_id}={code}")
-    return search_url_template.format("&".join(url_params))
+    u = urlparse(base_search_url)
+    query = parse_qs(u.query, keep_blank_values=True)
+    query.update(condition_codes)
+    return urlunparse(u._replace(query=urlencode(query, doseq=True)))
 
 
 def iter_search_results(search_url: str, sleep_time: float,

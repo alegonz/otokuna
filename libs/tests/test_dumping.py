@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import bs4
 import pytest
@@ -64,10 +65,12 @@ def test_build_search_url(monkeypatch):
     search_url = build_search_url(building_categories=["マンション"],
                                   wards=["中央区", "渋谷区"],
                                   only_today=True)
-    # TODO: Consider making deterministic the order of params in the search url
-    #  to allow testing existence of exact substring: "?ts=1&sc=13102&sc=13113&tc=0401303"
-    for param in ("ts=1", "sc=13102", "sc=13113", "tc=0401303"):
-        assert param in search_url
+    expected_query = {
+        "ts": ["1"],
+        "sc": ["13102", "13113"],
+        "tc": ["0401303"],
+    }
+    assert expected_query.items() <= parse_qs(urlparse(search_url).query, keep_blank_values=True).items()
 
 
 def test_iter_search_results(monkeypatch):
