@@ -26,9 +26,8 @@ async def test_main_async(batch_name, monkeypatch):
     search_url = "dummyurl"
 
     # Mock pages
-    html_text_by_url = {search_url: SEARCH_PAGE_CONTENT}
-    for page in range(1, NUMBER_OF_PAGES + 1):
-        html_text_by_url[f"{search_url}&page={page}"] = str(page)
+    html_text_by_url = {f"{search_url}&page={page}": " ".join([str(page), SEARCH_PAGE_CONTENT])
+                        for page in range(1, NUMBER_OF_PAGES + 1)}
 
     class MockResponse:
         def __init__(self, url, text):
@@ -64,7 +63,7 @@ async def test_main_async(batch_name, monkeypatch):
     for obj in objects:
         key = obj["Key"]
         content = s3_client.get_object(Bucket=output_bucket, Key=key)["Body"].read()
-        page = int(content)
+        page = int(content.split()[0])
         assert key == f"{expected_dump_path}/page_{page:06d}.html"
         keys.append(key)
     assert len(keys) == NUMBER_OF_PAGES

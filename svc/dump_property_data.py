@@ -16,16 +16,21 @@ from otokuna.logging import setup_logger
 async def get_page(search_url, page):
     search_url = drop_page_query(search_url)
     search_page_url = f"{search_url}&page={page}"
-    try:
-        response = await asks.get(search_page_url, retries=3)
-    except Exception as e:
-        # TODO: catch specific exceptions
-        raise RuntimeError(f"Could not fetch page {page}") from e
+    for attempt in range(3):
+        try:
+            response = await asks.get(search_page_url)
+        except Exception:
+            # TODO: catch specific exceptions
+            await trio.sleep(10)
+        else:
+            break
+    else:
+        raise RuntimeError(f"Could not fetch page {page}")
     return response
 
 
 async def get_number_of_pages(search_url):
-    response = await asks.get(search_url, retries=3)
+    response = await get_page(search_url, page=1)
     search_results_soup = bs4.BeautifulSoup(response.text, "html.parser")
     return scrape_number_of_pages(search_results_soup)
 
