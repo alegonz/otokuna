@@ -69,11 +69,15 @@ package:
     - zip_property_data.py
     - scrape_property_data.py
     - predict.py
+    - save_job_info.py
     - ${self:custom.model_path}
 
 functions:
   generate-base-path-daily:
     handler: generate_base_path.main_daily
+    memorySize: 128
+  generate-base-path-user-requested:
+    handler: generate_base_path.main_user_requested
     memorySize: 128
   build-search-url:
     handler: build_search_url.main
@@ -99,6 +103,10 @@ functions:
     memorySize: 2048
     environment:
       MODEL_PATH: ${self:custom.model_path}
+  save-job-info:
+    handler: save_job_info.main
+    timeout: 30
+    memorySize: 128
 
 stepFunctions:
   stateMachines:
@@ -151,4 +159,39 @@ stepFunctions:
             Type: Task
             Resource:
               Fn::GetAtt: [predict, Arn]
+            End: true
+
+    PredictUserRequestedMachine:
+      definition:
+        StartAt: GenerateBasePath
+        States:
+          GenerateBasePath:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ generate-base-path-user-requested, Arn ]
+            Next: DumpPropertyData
+          DumpPropertyData:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ dump-property-data, Arn ]
+            Next: ZipPropertyData
+          ZipPropertyData:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ zip-property-data, Arn ]
+            Next: ScrapePropertyData
+          ScrapePropertyData:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ scrape-property-data, Arn ]
+            Next: Predict
+          Predict:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ predict, Arn ]
+            Next: SaveJobInfo
+          SaveJobInfo:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [ save-job-info, Arn ]
             End: true
