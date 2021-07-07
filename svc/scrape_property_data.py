@@ -1,5 +1,6 @@
 import datetime
 import io
+import os
 import zipfile
 
 import boto3
@@ -13,7 +14,7 @@ def main(event, context):
     """
     logger = setup_logger("scrape-property-data", include_timestamp=False, propagate=False)
 
-    output_bucket = event["output_bucket"]
+    output_bucket = os.environ["OUTPUT_BUCKET"]
     raw_data_key = event["raw_data_key"]
     scraped_data_key = raw_data_key.replace(".zip", ".pickle")
 

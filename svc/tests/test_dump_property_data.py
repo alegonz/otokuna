@@ -1,3 +1,5 @@
+import os
+
 import boto3
 import pytest
 import trio
@@ -20,8 +22,8 @@ SEARCH_PAGE_CONTENT = f"""
 @mock_s3
 @trio_test
 @pytest.mark.parametrize("batch_name", ["千代田区", None])
-async def test_main_async(batch_name, monkeypatch):
-    output_bucket = "somebucket"
+async def test_main_async(batch_name, set_environ, monkeypatch):
+    output_bucket = os.environ["OUTPUT_BUCKET"]
     base_path = "foo/bar"
     search_url = "dummyurl"
 
@@ -45,7 +47,6 @@ async def test_main_async(batch_name, monkeypatch):
     s3_client.create_bucket(Bucket=output_bucket)
 
     event = {
-        "output_bucket": output_bucket,
         "base_path": base_path,
         "search_url": search_url,
     }

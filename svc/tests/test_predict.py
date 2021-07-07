@@ -12,8 +12,8 @@ DATA_DIR = Path(__file__).parent / "data"
 
 
 @mock_s3
-def test_main():
-    output_bucket = "somebucket"
+def test_main(set_environ):
+    output_bucket = os.environ["OUTPUT_BUCKET"]
     scraped_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/東京都.pickle"
     prediction_data_key = "predictions/daily/2021-01-25T14:59:25+00:00/prediction.pickle"
     model_filename = "../ml/models/regressor.onnx"
@@ -26,7 +26,6 @@ def test_main():
 
     # run main (downloads scraped data, predicts, and uploads results pickle)
     event = {
-        "output_bucket": output_bucket,
         "scraped_data_key": scraped_data_key,
         "model_filename": model_filename
     }

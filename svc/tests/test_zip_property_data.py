@@ -1,4 +1,5 @@
 import io
+import os
 import zipfile
 from pathlib import Path
 
@@ -34,8 +35,8 @@ def test_remove_prefix(s,expected):
 
 
 @mock_s3
-def test_main():
-    output_bucket = "somebucket"
+def test_main(set_environ):
+    output_bucket = os.environ["OUTPUT_BUCKET"]
     base_path = "some/folder"
     filename_template = "subfolder/file_{:03d}.txt"
     some_content = b"some content"
@@ -71,7 +72,6 @@ def test_main():
     # ---------- Call handler and check
     raw_data_key = f"{base_path}.zip"
     event = {
-        "output_bucket": output_bucket,
         "base_path": base_path
     }
     event_out = zip_property_data.main(event, None)

@@ -1,4 +1,5 @@
 import io
+import os
 import zipfile
 
 import boto3
@@ -60,7 +61,7 @@ def main(event, context):
     """
     logger = setup_logger("zip-property-data", include_timestamp=False, propagate=False)
 
-    output_bucket = event["output_bucket"]
+    output_bucket = os.environ["OUTPUT_BUCKET"]
     base_path = event["base_path"]  # TODO: rename as base_key
     s3_client = boto3.client("s3")
 

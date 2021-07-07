@@ -6,7 +6,7 @@
 # * CamelUpperCase for state machines and states
 #   - e.g. DumpMachine, DumpMap
 # * snake_case for application-specific parameters:
-#   - e.g. output_bucket
+#   - e.g. base_path
 # * kebab-case for service and function names
 #   - e.g. dump-svc, generate-base-path-daily
 
@@ -38,6 +38,8 @@ provider:
   lambdaHashingVersion: 20201221
   stage: ${opt:stage}
   region: us-east-1
+  environment:
+    OUTPUT_BUCKET: ${self:custom.output_bucket}
   stackTags:
     otokuna:git-repo-name: ${env:GIT_REPO_NAME}
     otokuna:git-branch: ${env:GIT_BRANCH}
@@ -105,7 +107,6 @@ stepFunctions:
         - schedule:
             rate: cron(0 12 * * ? *)  # every day at 12:00 UTC == 21:00 JST
             input:
-              output_bucket: ${self:custom.output_bucket}
               tokyo_wards: ${file(params.yml):tokyo_wards}
       definition:
         StartAt: GenerateBasePath
@@ -121,7 +122,6 @@ stepFunctions:
             ResultPath: $.map_result
             Parameters:
               batch_name.$: $$.Map.Item.Value
-              output_bucket.$: $.output_bucket
               base_path.$: $.base_path
             Iterator:
               StartAt: build_search_url_step

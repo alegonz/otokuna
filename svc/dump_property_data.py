@@ -1,4 +1,5 @@
 import io
+import os
 from pathlib import Path
 
 import asks
@@ -38,8 +39,8 @@ async def get_number_of_pages(search_url):
 async def main_async(event, context):
     logger = setup_logger("dump-svc", include_timestamp=False, propagate=False)
 
+    output_bucket = os.environ["OUTPUT_BUCKET"]
     batch_name = event.get("batch_name", "")  # (path / '' == path) is True
-    output_bucket = event["output_bucket"]
     base_path = event["base_path"]
     search_url = event["search_url"]
 

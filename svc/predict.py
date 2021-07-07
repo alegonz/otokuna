@@ -14,7 +14,7 @@ def main(event, context):
     """Makes predictions from scraped data and stores the results in the bucket."""
     logger = setup_logger("predict", include_timestamp=False, propagate=False)
 
-    output_bucket = event["output_bucket"]
+    output_bucket = os.environ["OUTPUT_BUCKET"]
     scraped_data_key = event["scraped_data_key"]
     _, *midpath, _ = scraped_data_key.split("/")
     prediction_data_key = "/".join(["predictions"] + midpath + ["prediction.pickle"])
