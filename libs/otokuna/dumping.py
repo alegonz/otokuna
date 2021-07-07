@@ -65,13 +65,29 @@ def _build_condition_codes(
     return condition_codes
 
 
-def remove_page_param(url):
-    """Remove page query parameter from the given url.
+def remove_params(url, params):
+    """Remove parameters (if any) from the given url.
     Based on: https://stackoverflow.com/a/7734686
     """
     u = urlparse(url)
     query = parse_qs(u.query, keep_blank_values=True)
-    query.pop("page", None)
+    for param in params:
+        query.pop(param, None)
+    u2 = u._replace(query=urlencode(query, doseq=True))
+    return urlunparse(u2)
+
+
+def remove_page_param(url):
+    """Remove page query parameter (if any) from the given url."""
+    return remove_params(url, ["page"])
+
+
+def add_params(url, values_by_param):
+    """Adds parameters to a given url."""
+    u = urlparse(url)
+    query = parse_qs(u.query, keep_blank_values=True)
+    for param, values in values_by_param.items():
+        query[param] = values
     u2 = u._replace(query=urlencode(query, doseq=True))
     return urlunparse(u2)
 
@@ -81,11 +97,7 @@ def add_results_per_page_param(url):
     If the parameter already exists (once or several times), it will
     set to once and to 50.
     """
-    u = urlparse(url)
-    query = parse_qs(u.query, keep_blank_values=True)
-    query["pc"] = ["50"]
-    u2 = u._replace(query=urlencode(query, doseq=True))
-    return urlunparse(u2)
+    return add_params(url, {"pc": ["50"]})
 
 
 def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str], only_today=True):

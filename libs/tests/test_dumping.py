@@ -7,9 +7,11 @@ import pytest
 
 from otokuna.dumping import (
     _get_condition_codes_by_value, _build_condition_codes,
-    build_search_url, iter_search_results, remove_page_param,
+    build_search_url, iter_search_results,
     scrape_number_of_pages, scrape_next_page_url,
-    SUUMO_TOKYO_SEARCH_URL, add_results_per_page_param
+    add_params, remove_params,
+    add_results_per_page_param, remove_page_param,
+    SUUMO_TOKYO_SEARCH_URL
 )
 from otokuna.testing import build_mock_requests_get
 
@@ -46,6 +48,17 @@ def test_build_condition_codes_invalid_value(monkeypatch):
     expected_error_msg = "invalid values for condition sc: {'あいうえお区'}"
     with pytest.raises(RuntimeError, match=expected_error_msg):
         _build_condition_codes(wards=["あいうえお区"])
+
+
+@pytest.mark.parametrize("url1,url2", [
+    ("https://suumo.jp/jj/chintai/ichiran/FR301FC001/",
+     "https://suumo.jp/jj/chintai/ichiran/FR301FC001/?page=1"),
+    ("https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13107",
+     "https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13107&page=1"),
+])
+def test_add_and_remove_params(url1, url2):
+    assert add_params(url1, {"page": ["1"]}) == url2
+    assert url1 == remove_params(url2, ["page"])
 
 
 @pytest.mark.parametrize("url", [
