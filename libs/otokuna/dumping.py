@@ -76,6 +76,18 @@ def drop_page_query(url):
     return urlunparse(u2)
 
 
+def add_results_per_page_param(url):
+    """Adds the 50 results per page query parameter to the given URL.
+    If the parameter already exists (once or several times), it will
+    set to once and to 50.
+    """
+    u = urlparse(url)
+    query = parse_qs(u.query, keep_blank_values=True)
+    query["pc"] = ["50"]
+    u2 = u._replace(query=urlencode(query, doseq=True))
+    return urlunparse(u2)
+
+
 def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str], only_today=True):
     """Build search url for properties in Tokyo (東京)
     TODO: support arbitrary cities

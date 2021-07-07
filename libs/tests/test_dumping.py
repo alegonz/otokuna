@@ -9,7 +9,7 @@ from otokuna.dumping import (
     _get_condition_codes_by_value, _build_condition_codes,
     build_search_url, iter_search_results, drop_page_query,
     scrape_number_of_pages, scrape_next_page_url,
-    SUUMO_TOKYO_SEARCH_URL
+    SUUMO_TOKYO_SEARCH_URL, add_results_per_page_param
 )
 from otokuna.testing import build_mock_requests_get
 
@@ -58,6 +58,16 @@ def test_build_condition_codes_invalid_value(monkeypatch):
 def test_drop_page_query(url):
     expected = "https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13107"
     assert drop_page_query(url) == expected
+
+
+@pytest.mark.parametrize("url", [
+    "https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13107",
+    "https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13107&pc=30",
+    "https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13107&pc=50"
+])
+def test_add_results_per_page_param(url):
+    expected = "https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13107&pc=50"
+    assert add_results_per_page_param(url) == expected
 
 
 def test_build_search_url(monkeypatch):
