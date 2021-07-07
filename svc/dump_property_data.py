@@ -7,7 +7,7 @@ import boto3
 import bs4
 import trio
 
-from otokuna.dumping import drop_page_query, scrape_number_of_pages
+from otokuna.dumping import add_results_per_page_param, drop_page_query, scrape_number_of_pages
 from otokuna.logging import setup_logger
 
 
@@ -42,7 +42,7 @@ async def main_async(event, context):
     output_bucket = os.environ["OUTPUT_BUCKET"]
     batch_name = event.get("batch_name", "")  # (path / '' == path) is True
     base_path = event["base_path"]
-    search_url = event["search_url"]
+    search_url = add_results_per_page_param(event["search_url"])
 
     dump_path = Path(base_path) / batch_name
     s3_client = boto3.client('s3')

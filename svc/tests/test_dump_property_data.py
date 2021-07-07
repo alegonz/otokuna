@@ -28,7 +28,7 @@ async def test_main_async(batch_name, set_environ, monkeypatch):
     search_url = "dummyurl"
 
     # Mock pages
-    html_text_by_url = {f"{search_url}&page={page}": " ".join([str(page), SEARCH_PAGE_CONTENT])
+    html_text_by_url = {f"{search_url}?pc=50&page={page}": " ".join([str(page), SEARCH_PAGE_CONTENT])
                         for page in range(1, NUMBER_OF_PAGES + 1)}
 
     class MockResponse:
