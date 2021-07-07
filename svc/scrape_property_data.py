@@ -15,6 +15,7 @@ def main(event, context):
     logger = setup_logger("scrape-property-data", include_timestamp=False, propagate=False)
 
     output_bucket = os.environ["OUTPUT_BUCKET"]
+    html_file_fetched_at = event["timestamp"]
     raw_data_key = event["raw_data_key"]
     scraped_data_key = raw_data_key.replace(".zip", ".pickle")
 
@@ -29,10 +30,6 @@ def main(event, context):
         properties = scrape_properties_from_files(filenames, stream,
                                                   logger=logger, n_jobs=1)
 
-    # raw_data_key is of the form:
-    # "dumped_data/daily/2021-01-25T14:59:25+00:00/東京都.zip"
-    timestamp_iso = raw_data_key.split("/")[-2]
-    html_file_fetched_at = datetime.datetime.fromisoformat(timestamp_iso).timestamp()
     df = make_properties_dataframe(properties, html_file_fetched_at, logger)
 
     with io.BytesIO() as stream:

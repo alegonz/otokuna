@@ -14,6 +14,7 @@ DATA_DIR = Path(__file__).parent / "data"
 @mock_s3
 def test_main(set_environ):
     output_bucket = os.environ["OUTPUT_BUCKET"]
+    timestamp = 1611586765.0
     raw_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/東京都.zip"
     scraped_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/東京都.pickle"
 
@@ -24,7 +25,8 @@ def test_main(set_environ):
 
     # run main (downloads, creates dataframe, and uploads pickle)
     event = {
-        "raw_data_key": raw_data_key
+        "raw_data_key": raw_data_key,
+        "timestamp": timestamp
     }
     event_out = scrape_property_data.main(event, None)
     assert event_out is event
