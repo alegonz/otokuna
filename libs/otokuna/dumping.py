@@ -5,7 +5,7 @@ import datetime
 import logging
 import time
 from pathlib import Path
-from typing import Optional, Sequence, Dict, Set, Tuple, Iterator
+from typing import Optional, Sequence, Dict, Tuple, Iterator, List
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import bs4
@@ -45,7 +45,7 @@ def _build_condition_codes(
         building_categories: Optional[Sequence[str]] = None,
         wards: Optional[Sequence[str]] = None,
         special_conditions: Optional[Sequence[str]] = None
-) -> Dict[str, Set[str]]:
+) -> Dict[str, List[str]]:
     response = requests.get(SUUMO_TOKYO_SEARCH_URL)
     soup = bs4.BeautifulSoup(response.text, "html.parser")
     condition_codes = {}
@@ -61,7 +61,7 @@ def _build_condition_codes(
             values_not_found = set(values) - set(codes_by_value.keys())
             if values_not_found:
                 raise RuntimeError(f"invalid values for condition {cond_id}: {values_not_found}")
-            condition_codes[cond_id] = {code for value, code in codes_by_value.items() if value in values}
+            condition_codes[cond_id] = sorted(code for value, code in codes_by_value.items() if value in values)
     return condition_codes
 
 

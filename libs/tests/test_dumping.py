@@ -32,9 +32,9 @@ def test_build_condition_codes(monkeypatch):
     monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
 
     expected = {
-        "ts": {"1"},
-        "sc": {"13102", "13113"},
-        "tc": {"0401303"}
+        "ts": ["1"],
+        "sc": ["13102", "13113"],
+        "tc": ["0401303"]
     }
     assert _build_condition_codes(["マンション"], ["中央区", "渋谷区"], ["本日の新着物件"]) == expected
 
