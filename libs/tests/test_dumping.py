@@ -122,8 +122,8 @@ def test_scrape_next_page_url(page_filename, expected):
 
 def test_iter_search_results(monkeypatch):
     html_files_by_url = {
-        "dummyurl&page=1": DATA_DIR / "results_first_page.html",
-        "dummyurl&page=2": DATA_DIR / "results_last_page.html"
+        "dummyurl?page=1": DATA_DIR / "results_first_page.html",
+        "dummyurl?page=2": DATA_DIR / "results_last_page.html"
     }
     monkeypatch.setattr("otokuna.dumping.requests.get", build_mock_requests_get(html_files_by_url))
     monkeypatch.setattr("otokuna.dumping.time.sleep", lambda _: _)

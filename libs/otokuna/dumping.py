@@ -176,8 +176,7 @@ def iter_search_results(search_url: str, sleep_time: float,
 
 
 def _get_page(search_url, page, n_attempts, logger):
-    search_url = remove_page_param(search_url)
-    search_page_url = f"{search_url}&page={page}"
+    search_page_url = add_params(search_url, {"page": [str(page)]})
     for attempt in range(n_attempts):
         try:
             response = requests.get(search_page_url)
