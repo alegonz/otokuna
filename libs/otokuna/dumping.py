@@ -65,8 +65,8 @@ def _build_condition_codes(
     return condition_codes
 
 
-def drop_page_query(url):
-    """Drop page query from given url
+def remove_page_param(url):
+    """Remove page query parameter from the given url.
     Based on: https://stackoverflow.com/a/7734686
     """
     u = urlparse(url)
@@ -164,7 +164,7 @@ def iter_search_results(search_url: str, sleep_time: float,
 
 
 def _get_page(search_url, page, n_attempts, logger):
-    search_url = drop_page_query(search_url)
+    search_url = remove_page_param(search_url)
     search_page_url = f"{search_url}&page={page}"
     for attempt in range(n_attempts):
         try:
