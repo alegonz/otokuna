@@ -71,6 +71,8 @@ async def main_async(event, context):
         for i in range(max_simultaneous_workers):
             nursery.start_soon(worker, i)
 
+    return event
+
 
 def main(event, context):
     return trio.run(main_async, event, context)
