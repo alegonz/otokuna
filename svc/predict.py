@@ -16,9 +16,9 @@ def main(event, context):
     logger = setup_logger("predict", include_timestamp=False, propagate=False)
 
     output_bucket = os.environ["OUTPUT_BUCKET"]
+    root_key = event["root_key"]
     scraped_data_key = event["scraped_data_key"]
-    base_path_predictions = event["base_path_predictions"]
-    prediction_data_key = str(Path(base_path_predictions) / "prediction.pickle")
+    prediction_data_key = str(Path(root_key) / "prediction.pickle")
     model_filename = os.environ["MODEL_PATH"]
 
     s3_client = boto3.client("s3")
