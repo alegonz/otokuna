@@ -235,7 +235,7 @@ executable is not found.
 
     * Invoke the whole state machine with a given input json data.
     
-            ~$ make -C svc invoke-stepf INPUT_JSON=<json-file>
+            ~$ make -C svc invoke-stepf STATE_MACHINE=PredictDailyMachine INPUT_JSON=<json-file>
 
 ### 3. Running the web app
 
