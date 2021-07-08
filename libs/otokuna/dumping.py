@@ -25,10 +25,9 @@ SUUMO_TOKYO_SEARCH_URL = f"{SUUMO_URL}/chintai/tokyo/city/"
 #   See: https://www.soumu.go.jp/denshijiti/code.html
 
 
-def now_isoformat():
-    """Returns the current datetime in JST in ISO format (dropping milliseconds)."""
-    now = datetime.datetime.now(tz=LOCAL_TIMEZONE)
-    return now.isoformat(timespec="seconds")
+def now_local():
+    """Returns the current datetime in the local timezone"""
+    return datetime.datetime.now(tz=LOCAL_TIMEZONE)
 
 
 def _get_condition_codes_by_value(soup, cond_id):
@@ -198,7 +197,7 @@ def dump_properties(dump_dir: str, building_categories: Sequence[str], wards: Se
     The data is written in a sub-folder named from the current timestamp in the
     given dump_dir.
     """
-    datetime_str = now_isoformat()
+    datetime_str = now_local().isoformat(timespec="seconds")
     dump_dir = Path(f"{dump_dir}/{datetime_str}/東京都")
     dump_dir.mkdir(parents=True)
     logger = setup_logger("dump-properties", dump_dir / "dump.log")
