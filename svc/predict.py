@@ -1,5 +1,6 @@
 import io
 import os
+from pathlib import Path
 
 import boto3
 import numpy as np
@@ -16,8 +17,8 @@ def main(event, context):
 
     output_bucket = os.environ["OUTPUT_BUCKET"]
     scraped_data_key = event["scraped_data_key"]
-    _, *midpath, _ = scraped_data_key.split("/")
-    prediction_data_key = "/".join(["predictions"] + midpath + ["prediction.pickle"])
+    base_path_predictions = event["base_path_predictions"]
+    prediction_data_key = str(Path(base_path_predictions) / "prediction.pickle")
     model_filename = os.environ["MODEL_PATH"]
 
     s3_client = boto3.client("s3")

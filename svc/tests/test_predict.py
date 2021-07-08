@@ -14,10 +14,12 @@ DATA_DIR = Path(__file__).parent / "data"
 @mock_s3
 def test_main(set_environ):
     output_bucket = os.environ["OUTPUT_BUCKET"]
+    base_path_predictions = "predictions/daily/2021-01-25T14:59:25+00:00"
     scraped_data_key = "dumped_data/daily/2021-01-25T14:59:25+00:00/東京都.pickle"
-    prediction_data_key = "predictions/daily/2021-01-25T14:59:25+00:00/prediction.pickle"
     model_filename = "../ml/models/regressor.onnx"
     os.environ["MODEL_PATH"] = model_filename
+
+    expected_prediction_data_key = f"{base_path_predictions}/prediction.pickle"
 
     # Upload pickle file with scraped property data
     s3_client = boto3.client("s3")
@@ -26,16 +28,17 @@ def test_main(set_environ):
 
     # run main (downloads scraped data, predicts, and uploads results pickle)
     event = {
+        "base_path_predictions": base_path_predictions,
         "scraped_data_key": scraped_data_key,
         "model_filename": model_filename
     }
     event_out = predict.main(event, None)
     assert event_out is event
-    assert event_out["prediction_data_key"] == prediction_data_key
+    assert event_out["prediction_data_key"] == expected_prediction_data_key
 
     # Download predicted data pickle
     with io.BytesIO() as stream:
-        s3_client.download_fileobj(Bucket=output_bucket, Key=prediction_data_key, Fileobj=stream)
+        s3_client.download_fileobj(Bucket=output_bucket, Key=expected_prediction_data_key, Fileobj=stream)
         stream.seek(0)
         prediction_df = pd.read_pickle(stream)
 

@@ -9,3 +9,4 @@ def test_main_daily():
     event_out = generate_base_path.main_daily(event, None)
     assert event_out is event
     assert event_out["base_path"] == "dumped_data/daily/2021-01-20T23:53:35+09:00/東京都"
+    assert event_out["base_path_predictions"] == "predictions/daily/2021-01-20T23:53:35+09:00"
