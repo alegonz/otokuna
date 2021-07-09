@@ -1,57 +1,58 @@
 scrape-properties:
-  cmd: scrape-properties data/2021-01-16T20:40:36+09:00/東京都.zip --output-filename
-    data/2021-01-16T20:40:36+09:00/東京都.pickle --output-format pickle --jobs 3
+  cmd: scrape-properties data/2021-07-04T11:52:04+09:00/東京都.zip --output-filename
+    data/2021-07-04T11:52:04+09:00/東京都.pickle --output-format pickle --jobs 3
   deps:
   - path: ../libs/otokuna
-    md5: 6627570d5db405eeab014cedb8d1a675.dir
-    size: 593844
-    nfiles: 18
-  - path: data/2021-01-16T20:40:36+09:00/東京都.zip
-    md5: 347cb00b51813e11fd6da341945351d7
-    size: 84043727
+    md5: ff7396a2a482b55cabb9c3bd5172d937.dir
+    size: 598931
+    nfiles: 20
+  - path: data/2021-07-04T11:52:04+09:00/東京都.zip
+    md5: dcffdb66cda379cdbe968ce72acec74f
+    size: 92033844
   outs:
-  - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
-    md5: 6401c838b9c2831d0fa8a5b2618d7bf1
-    size: 62269184
+  - path: data/2021-07-04T11:52:04+09:00/東京都.pickle
+    md5: 75872aed390ac5f159a331d9f725a6bb
+    size: 68668120
 train:
-  cmd: ./train.py
+  cmd: ./train.py data/2021-07-04T11:52:04+09:00/東京都.pickle models/regressor
   deps:
   - path: ../libs/otokuna
-    md5: 6627570d5db405eeab014cedb8d1a675.dir
-    size: 593844
-    nfiles: 18
-  - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
-    md5: 6401c838b9c2831d0fa8a5b2618d7bf1
-    size: 62269184
+    md5: ff7396a2a482b55cabb9c3bd5172d937.dir
+    size: 598931
+    nfiles: 20
+  - path: data/2021-07-04T11:52:04+09:00/東京都.pickle
+    md5: 75872aed390ac5f159a331d9f725a6bb
+    size: 68668120
   - path: train.py
-    md5: 9a8021819ba759203574f8d5a7cd7d15
-    size: 1962
+    md5: 58dc602ed741aa04d7250760615de077
+    size: 2561
   outs:
   - path: metrics.json
-    md5: f44dac0ad4fa46162c3f8a3ff3e9c4e9
-    size: 108
+    md5: e38b433994290cca5046ba968d5f36c3
+    size: 109
   - path: models/regressor.cbm
-    md5: d43ab13ea52f3b0136ea4c5f3ee5e766
-    size: 10353896
+    md5: 003e15ef41986f85476d1fe515979e04
+    size: 10811328
   - path: models/regressor.onnx
-    md5: b401ddc885b2eeed787e313d24892283
-    size: 45623236
+    md5: 7a9ade86e9b2d674f001d861a4ea49fb
+    size: 47642322
 check-onnx:
-  cmd: ./check_onnx.py
+  cmd: ./check_onnx.py data/2021-07-04T11:52:04+09:00/東京都.pickle models/regressor.onnx
+    models/regressor.cbm
   deps:
   - path: check_onnx.py
-    md5: eec8d84583aaa204929e0b1930161e3b
-    size: 1053
-  - path: data/2021-01-16T20:40:36+09:00/東京都.pickle
-    md5: 6401c838b9c2831d0fa8a5b2618d7bf1
-    size: 62269184
+    md5: e78c2470b42f036c618f8cd11f90a2ff
+    size: 1717
+  - path: data/2021-07-04T11:52:04+09:00/東京都.pickle
+    md5: 75872aed390ac5f159a331d9f725a6bb
+    size: 68668120
   - path: models/regressor.cbm
-    md5: d43ab13ea52f3b0136ea4c5f3ee5e766
-    size: 10353896
+    md5: 003e15ef41986f85476d1fe515979e04
+    size: 10811328
   - path: models/regressor.onnx
-    md5: b401ddc885b2eeed787e313d24892283
-    size: 45623236
+    md5: 7a9ade86e9b2d674f001d861a4ea49fb
+    size: 47642322
   outs:
   - path: check_onnx.json
-    md5: 12ad605ee724b5ba2099f2ce3c16d96d
-    size: 43
+    md5: 2dd753e301952e374ce623f1f670eee5
+    size: 42
