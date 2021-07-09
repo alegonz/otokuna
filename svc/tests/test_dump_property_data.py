@@ -57,7 +57,8 @@ async def test_main_async(batch_name, set_environ, monkeypatch):
         expected_dump_path = base_path
 
     event_out = await dump_property_data.main_async(event, None)
-    assert event_out is None
+    assert event_out is event
+    assert event_out == event
 
     objects = s3_client.list_objects_v2(Bucket=output_bucket)["Contents"]
     keys = []

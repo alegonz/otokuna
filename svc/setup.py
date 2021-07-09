@@ -9,6 +9,7 @@ setup(
         "dump_property_data",
         "zip_property_data",
         "scrape_property_data",
-        "predict"
+        "predict",
+        "save_job_info"
     ]
 )
