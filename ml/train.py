@@ -41,7 +41,7 @@ def main(args):
     # Train model
     model = CatBoostRegressor(
         learning_rate=1e-2,
-        iterations=10000,
+        iterations=20000,
         loss_function="MAE",
         random_seed=456
     )

@@ -24,18 +24,18 @@ train:
     md5: 75872aed390ac5f159a331d9f725a6bb
     size: 68668120
   - path: train.py
-    md5: 58dc602ed741aa04d7250760615de077
+    md5: 21814f01b2460aa9b2ca601f20e4a9a7
     size: 2561
   outs:
   - path: metrics.json
-    md5: e38b433994290cca5046ba968d5f36c3
-    size: 109
+    md5: 0ac88c9619608485ad4349ef21e56a09
+    size: 106
   - path: models/regressor.cbm
-    md5: 003e15ef41986f85476d1fe515979e04
-    size: 10811328
+    md5: 7cc970f74cf4780d606b733b93744088
+    size: 17809344
   - path: models/regressor.onnx
-    md5: 7a9ade86e9b2d674f001d861a4ea49fb
-    size: 47642322
+    md5: 50beec3fd5e8b5b158518ff10a8d56a4
+    size: 78542412
 check-onnx:
   cmd: ./check_onnx.py data/2021-07-04T11:52:04+09:00/東京都.pickle models/regressor.onnx
     models/regressor.cbm
@@ -47,12 +47,12 @@ check-onnx:
     md5: 75872aed390ac5f159a331d9f725a6bb
     size: 68668120
   - path: models/regressor.cbm
-    md5: 003e15ef41986f85476d1fe515979e04
-    size: 10811328
+    md5: 7cc970f74cf4780d606b733b93744088
+    size: 17809344
   - path: models/regressor.onnx
-    md5: 7a9ade86e9b2d674f001d861a4ea49fb
-    size: 47642322
+    md5: 50beec3fd5e8b5b158518ff10a8d56a4
+    size: 78542412
   outs:
   - path: check_onnx.json
-    md5: 2dd753e301952e374ce623f1f670eee5
+    md5: 99daaa23d87a8443d081a255ea9f0b95
     size: 42
