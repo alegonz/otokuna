@@ -46,7 +46,7 @@
                     window.location.href = "{{ url_for('load_daily_prediction', date='__DATE__') }}".replace("__DATE__", date_str)
                  });
             </script>
-            <form method="POST" action="/">
+            <form method="POST" action="{{ url_for('index_daily') }}">
                 <input class="button" type="submit" value="Refresh dates">
             </form>
         </section>
