@@ -248,7 +248,7 @@ def index_daily():
 
 
 @app.route("/daily/prediction/<date>")
-def load_predictions(date):
+def load_daily_prediction(date):
     df = load_data_daily(date)
     data_id = uuid.uuid4().int
     _ = startup(data_id=data_id,

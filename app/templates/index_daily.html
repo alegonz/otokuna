@@ -43,7 +43,7 @@
                     const offset = date.getTimezoneOffset();
                     date = new Date(date.getTime() - (offset*60*1000));
                     let date_str = date.toISOString().split('T')[0];
-                    window.location.href = "{{ url_for('load_predictions', date='__DATE__') }}".replace("__DATE__", date_str)
+                    window.location.href = "{{ url_for('load_daily_prediction', date='__DATE__') }}".replace("__DATE__", date_str)
                  });
             </script>
             <form method="POST" action="/">
