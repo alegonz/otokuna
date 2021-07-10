@@ -1,0 +1,55 @@
+<!-- templates/index_daily.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<div class="columns">
+    <div class="column">
+        <section class="section">
+            <h1 class="title">Daily predictions</h1>
+            <div class="content">
+                <p>Please select a date from the highlighted dates in the calendar to see a table with
+                    the predictions for the properties published on that day.
+                </p>
+                <p>Currently it is limited to properties from the 23 wards of Tokyo as published by
+                    <a href="https://suumo.jp">SUUMO</a>.
+                </p>
+                <p>
+                    <strong>Notes:</strong>
+                    <ul>
+                        <li>Each date may take a few seconds to load the first time.</li>
+                        <li>Each date becomes available at around 21:00 JST (12:00 UTC).</li>
+                    </ul>
+                </p>
+            </div>
+        </section>
+    </div>
+    <div class="column">
+        <section class="section">
+            <link rel="stylesheet" href="{{ url_for('static_vendor', filename='bulma-calendar.min.css') }}">
+            <script src="{{ url_for('static_vendor', filename='bulma-calendar.min.js') }}"></script>
+            <input id="datepicker" class="input" type="date"
+                   data-display-mode="inline" data-color="info" data-show-header="false" data-show-clear-button="false">
+            <script>
+                let calendars = bulmaCalendar.attach("#datepicker", {
+                    highlightedDates: [
+                        {% for date in prediction_dates %}
+                        new Date("{{date}}"),
+                        {% endfor %}
+                    ]
+                });
+                let calendar = calendars[0];
+                calendar.datePicker.on("select", event => {
+                    let date = event.data.date.start;
+                    const offset = date.getTimezoneOffset();
+                    date = new Date(date.getTime() - (offset*60*1000));
+                    let date_str = date.toISOString().split('T')[0];
+                    window.location.href = "{{ url_for('load_predictions', date='__DATE__') }}".replace("__DATE__", date_str)
+                 });
+            </script>
+            <form method="POST" action="/">
+                <input class="button" type="submit" value="Refresh dates">
+            </form>
+        </section>
+    </div>
+</div>
+{% endblock %}

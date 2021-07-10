@@ -2,83 +2,45 @@
 
 {% extends "base.html" %}
 {% block content %}
-<div class="columns">
-    <div class="column">
-        <section class="section">
-            <div class="content">
-                <p>Welcome to the otokuna web app!
-                </p>
-                <p>This app is a tool to aid finding good deals of rental properties. It keeps track
-                    of the rental properties published daily and provides estimates of their monthly
-                    cost.
-                </p>
-                <p>Currently it is limited to properties from the 23 wards of Tokyo as published by
-                    <a href="https://suumo.jp">SUUMO</a>.
-                </p>
-                <p>Please select a date from the highlighted dates in the calendar to see a table with
-                    the predictions for the properties published on that day.
-                </p>
-                <p>Each row in the table is a property for rental (賃貸物件) and each column shows attributes
-                    such as rent, layout, area, address, etc. Among these, three columns deserve special
-                    attention:
-                </p>
-                <ul>
-                    <li><strong>monthly_cost</strong>: the actual rent plus the administration fee (in JPY),
-                        as advertised by the broker.</li>
-                    <li><strong>monthly_cost_predicted</strong>: the predicted monthly cost (in JPY), based
-                        on a regression model trained on historical data that estimates how much the property
-                        would cost given its area, layout, location and such.</li>
-                    <li><strong>otokuna_score</strong>: the predicted to actual ratio, e.g. a score of 2 means
-                        that the predicted value is twice the actual value. The higher this value, the better
-                        a deal we believe the property is because it is supposed to be more expensive than what
-                        is being advertised.</li>
-                </ul>
-                <p>The table is rendered by <a href="https://github.com/man-group/dtale">DTale</a>.
-                    You can interact with it by scrolling along the rows and columns and
-                    clicking the headers or the menu button on the top-left corner. You
-                    can sort, filter, apply heatmaps and do many more things. For for more
-                    information on all the things you can do with DTale tables please refer
-                    to this <a href="https://github.com/man-group/dtale/#dimensionsmain-menu">link</a>.
-                </p>
-                <p>
-                    <strong>Notes:</strong>
-                    <ul>
-                        <li>Each date may take a few seconds to load the first time.</li>
-                        <li>Each date becomes available at around 21:00 JST (12:00 UTC).</li>
-                    </ul>
-                </p>
-            </div>
-        </section>
+<section class="section" xmlns="http://www.w3.org/1999/html">
+    <div class="content">
+        <h1 class="title">Welcome to the otokuna web app!</h1>
+        <p>This app is a tool to aid finding good deals of rental properties. It scrapes data of
+            rental properties and provides estimates of their monthly cost. The data and the estimates
+            are presented in a spreadsheet-like table which you can explore and manipulate freely.
+            There are two ways to use this app (click on each link for further details):
+        </p>
+        <ul>
+            <li><strong><a href="{{ url_for('index_daily') }}">See the daily predictions</a></strong>:
+                The app keeps track of the rental properties published daily. You can use this to check
+                if any new good deals were published recently.</li>
+        </ul>
+
+        <h2 class="subtitle">How to read the tables</h2>
+        <p>Each row in the table is a property for rental (賃貸物件) and each column shows attributes
+            such as rent, layout, area, address, etc. Among these, three columns deserve special
+            attention:
+        </p>
+        <ul>
+            <li><strong>monthly_cost</strong>: the actual rent plus the administration fee (in JPY),
+                as advertised by the broker.</li>
+            <li><strong>monthly_cost_predicted</strong>: the predicted monthly cost (in JPY), based
+                on a regression model trained on historical data that estimates how much the property
+                would cost given its area, layout, location and such.</li>
+            <li><strong>otokuna_score</strong>: the predicted to actual ratio, e.g. a score of 2 means
+                that the predicted value is twice the actual value. The higher this value, the better
+                a deal we believe the property is because it is supposed to be more expensive than what
+                is being advertised.</li>
+        </ul>
+        <p>The table is rendered by <a href="https://github.com/man-group/dtale">DTale</a>.
+            You can interact with it by scrolling along the rows and columns and
+            clicking the headers or the menu button on the top-left corner. You
+            can sort, filter, apply heatmaps and do many more things. For for more
+            information on all the things you can do with DTale tables please refer
+            to this <a href="https://github.com/man-group/dtale/#dimensionsmain-menu">link</a>.
+        </p>
     </div>
-    <div class="column">
-        <section class="section">
-            <link rel="stylesheet" href="{{ url_for('static_vendor', filename='bulma-calendar.min.css') }}">
-            <script src="{{ url_for('static_vendor', filename='bulma-calendar.min.js') }}"></script>
-            <input id="datepicker" class="input" type="date"
-                   data-display-mode="inline" data-color="info" data-show-header="false" data-show-clear-button="false">
-            <script>
-                let calendars = bulmaCalendar.attach("#datepicker", {
-                    highlightedDates: [
-                        {% for date in prediction_dates %}
-                        new Date("{{date}}"),
-                        {% endfor %}
-                    ]
-                });
-                let calendar = calendars[0];
-                calendar.datePicker.on("select", event => {
-                    let date = event.data.date.start;
-                    const offset = date.getTimezoneOffset();
-                    date = new Date(date.getTime() - (offset*60*1000));
-                    let date_str = date.toISOString().split('T')[0];
-                    window.location.href = "{{ url_for('load_predictions', date='__DATE__') }}".replace("__DATE__", date_str)
-                 });
-            </script>
-            <form method="POST" action="/">
-                <input class="button" type="submit" value="Refresh dates">
-            </form>
-        </section>
-    </div>
-</div>
+</section>
 
 <footer class="footer">
     <div class="content has-text-centered">

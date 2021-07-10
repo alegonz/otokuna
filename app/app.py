@@ -132,7 +132,7 @@ def join_dataframes(scraped_df, prediction_df):
     return df
 
 
-def load_data(date):
+def load_data_daily(date):
     if not REDIS_DB.hexists(ISO_DATETIMES_KEY, date):
         abort(404)
     if REDIS_DB.hexists(DATAFRAMES_KEY, date):
@@ -224,9 +224,15 @@ def check_valid_login():
     return render_template("login.html", form=LoginForm())
 
 
-@app.route("/", methods=("GET", "POST"))
+@app.route("/")
 @login_required
 def index():
+    return render_template("index.html")
+
+
+@app.route("/daily", methods=("GET", "POST"))
+@login_required
+def index_daily():
     prediction_objects = BUCKET.objects.iterator(Prefix=CONFIG.predictions_key_prefix)
     pattern = os.path.join(CONFIG.predictions_key_prefix, CONFIG.prediction_key_pattern)
     prediction_iso_datetimes = sorted(re.match(pattern, obj.key).group(1)
@@ -238,12 +244,12 @@ def index():
         # If two or more datetimes for the same date the latest will be kept.
         REDIS_DB.hset(ISO_DATETIMES_KEY, date, iso)
         prediction_dates.append(date)
-    return render_template("index.html", prediction_dates=prediction_dates)
+    return render_template("index_daily.html", prediction_dates=prediction_dates)
 
 
-@app.route("/prediction/<date>")
+@app.route("/daily/prediction/<date>")
 def load_predictions(date):
-    df = load_data(date)
+    df = load_data_daily(date)
     data_id = uuid.uuid4().int
     _ = startup(data_id=data_id,
                 data=df,
