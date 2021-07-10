@@ -109,6 +109,20 @@ def download_dataframe(key):
     return df
 
 
+def join_dataframes(scraped_df, prediction_df):
+    # Add score column
+    prediction_df = prediction_df.assign(otokuna_score=lambda df_: df_.y_pred / df_.y)
+    # Join data
+    df = prediction_df.join(scraped_df)
+    df.sort_values(by="otokuna_score", ascending=False, inplace=True)
+    # Rename columns to more readable names
+    df.rename(
+        inplace=True,
+        columns={"y": "monthly_cost", "y_pred": "monthly_cost_predicted"}
+    )
+    return df
+
+
 def load_data(date):
     if f"{ISO_DATETIMES_KEY}:{date}" not in REDIS_DB:
         abort(404)
@@ -122,16 +136,7 @@ def load_data(date):
     # Get prediction data
     key = os.path.join(CONFIG.predictions_key_prefix, CONFIG.prediction_key_template).format(iso_datetime)
     prediction_df = download_dataframe(key.format(iso_datetime))
-    # Add score column
-    prediction_df = prediction_df.assign(otokuna_score=lambda df_: df_.y_pred / df_.y)
-    # Join data
-    df = prediction_df.join(scraped_df)
-    df.sort_values(by="otokuna_score", ascending=False, inplace=True)
-    # Rename columns to more readable names
-    df.rename(
-        inplace=True,
-        columns={"y": "monthly_cost", "y_pred": "monthly_cost_predicted"}
-    )
+    df = join_dataframes(scraped_df, prediction_df)
     REDIS_DB.set(df_key, df)
     return df
 
