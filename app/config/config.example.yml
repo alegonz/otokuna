@@ -5,7 +5,8 @@ users:
     password_hash: "some_hash0"
   - user_id: "some_id1"
     password_hash: "some_hash1"
-state_data_path: "/tmp/dtale_data"
+dtale_state_dir: "/tmp/otokuna_dtale_state"
+app_db_file: "/tmp/otokuna_app_state.db"
 bucket_name: "mybucket"
 scraped_data_key_prefix: "dumped_data/daily"
 scraped_data_key_template: "{}/東京都.pickle"  # relative to scraped_data_key_prefix

@@ -11,6 +11,11 @@
       "base": ".."
     },
     {
+      "from": "../state.py",
+      "to": "/opt/otokuna-web-server/",
+      "base": ".."
+    },
+    {
       "from": "../config/gunicorn.conf.py",
       "to": "/opt/otokuna-web-server/",
       "base": ".."

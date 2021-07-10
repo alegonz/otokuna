@@ -23,6 +23,8 @@ from werkzeug.utils import secure_filename
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired
 
+from state import AppRedis
+
 
 @dataclass
 class Config:
@@ -30,7 +32,8 @@ class Config:
     # Flask app
     secret_key: str
     users: List[Dict[str, str]]
-    state_data_path: str
+    dtale_state_dir: str
+    app_db_file: str
     bucket_name: str
     scraped_data_key_prefix: str
     scraped_data_key_template: str
@@ -55,9 +58,15 @@ DATAFRAMES_KEY = "dataframes"
 
 app = build_app(reaper_on=False, additional_templates=TEMPLATES_PATH)
 
-os.makedirs(CONFIG.state_data_path, exist_ok=True)
-dtale.global_state.use_redis_store(CONFIG.state_data_path)
-REDIS_DB = dtale.global_state.DATA
+# Set up redis data stores
+# There are two instances of redis:
+# The first is internal to Dtale and the second is an extra instance
+# we provision to handle additional app state. We don't reuse the Dtale
+# internal instance because it has modifications specific to Dtale
+# internals which make it difficult for general usage.
+os.makedirs(CONFIG.dtale_state_dir, exist_ok=True)
+dtale.global_state.use_redis_store(CONFIG.dtale_state_dir)
+REDIS_DB = AppRedis(CONFIG.app_db_file)
 
 app.secret_key = CONFIG.secret_key
 login_manager = LoginManager()
@@ -124,20 +133,19 @@ def join_dataframes(scraped_df, prediction_df):
 
 
 def load_data(date):
-    if f"{ISO_DATETIMES_KEY}:{date}" not in REDIS_DB:
+    if not REDIS_DB.hexists(ISO_DATETIMES_KEY, date):
         abort(404)
-    df_key = f"{DATAFRAMES_KEY}:{date}"
-    if df_key in REDIS_DB:
-        return REDIS_DB[df_key]
+    if REDIS_DB.hexists(DATAFRAMES_KEY, date):
+        return REDIS_DB.hget(DATAFRAMES_KEY, date)
     # Get scraped data
-    iso_datetime = REDIS_DB.get(f"{ISO_DATETIMES_KEY}:{date}")  # DtaleRedis.get already casts to str
+    iso_datetime = REDIS_DB.hget(ISO_DATETIMES_KEY, date)
     key = os.path.join(CONFIG.scraped_data_key_prefix, CONFIG.scraped_data_key_template).format(iso_datetime)
     scraped_df = download_dataframe(key)
     # Get prediction data
     key = os.path.join(CONFIG.predictions_key_prefix, CONFIG.prediction_key_template).format(iso_datetime)
     prediction_df = download_dataframe(key.format(iso_datetime))
     df = join_dataframes(scraped_df, prediction_df)
-    REDIS_DB.set(df_key, df)
+    REDIS_DB.hset(DATAFRAMES_KEY, date, df)
     return df
 
 
@@ -228,8 +236,7 @@ def index():
         date = iso2date(iso)
         # NOTE: we assume there is exactly one datetime for each date.
         # If two or more datetimes for the same date the latest will be kept.
-        # NOTE: We cannot use hash commands because the breaks DtaleRedis.to_dict
-        REDIS_DB.set(f"{ISO_DATETIMES_KEY}:{date}", iso)
+        REDIS_DB.hset(ISO_DATETIMES_KEY, date, iso)
         prediction_dates.append(date)
     return render_template("index.html", prediction_dates=prediction_dates)
 
