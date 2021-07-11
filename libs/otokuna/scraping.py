@@ -59,7 +59,9 @@ def parse_transportation(s: str) -> float:
 
 
 def parse_address(s: str) -> Tuple[str, str]:
-    """Parse ward and district (without the 丁目)"""
+    """Parse ward and district (without the 丁目)
+    NOTE: Currently limited to addresses in the special wards of Tokyo.
+    """
     ward, district = _match_and_raise(r"東京都(.+区)(\D*)", s).groups()
     return ward, district
 
