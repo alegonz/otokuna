@@ -14,6 +14,13 @@
             ],
             "Resource": "arn:aws:s3:::mybucket/*",
             "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "states:StartExecution"
+            ],
+            "Resource": "arn:aws:states:us-west-2:123456789012:stateMachine:MyStateMachine",
+            "Effect": "Allow"
         }
     ]
 }
