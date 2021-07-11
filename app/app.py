@@ -319,10 +319,8 @@ def index_custom_request():
         job_info = JobInfo.json_loads(obj.get()["Body"].read())
         REDIS_DB.sadd(JOB_INFO_KEYS_KEY, obj.key)
         REDIS_DB.hset(JOB_INFO_KEY, job_info.job_id, job_info)
-    # TODO: sort jobs by timestamp and user_id
-    return render_template("index_custom_request.html",
-                           jobs=REDIS_DB.hvals(JOB_INFO_KEY),
-                           form=CustomRequestForm())
+    jobs = sorted(REDIS_DB.hvals(JOB_INFO_KEY), key=lambda job: (job.timestamp, job.user_id))
+    return render_template("index_custom_request.html", jobs=jobs, form=CustomRequestForm())
 
 
 @app.route("/prediction/<job_id>")
