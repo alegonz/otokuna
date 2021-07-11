@@ -1,4 +1,5 @@
-VERSION:=0.1.0
+# TODO: Consider matching the service and app versions
+VERSION:=0.2.0
 GIT_DATE:=$(shell date -u +%Y%m%d -d @$(shell git show -s --format=%ct))
 GIT_HASH:=$(shell git show -s --format=%h)
 DEB_VERSION:=$(VERSION)~$(GIT_DATE)+$(GIT_HASH)
