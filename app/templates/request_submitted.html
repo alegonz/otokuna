@@ -1,0 +1,12 @@
+<!-- templates/index.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<p>Your request is being processed. Depending on the size of the search request it may take
+   several minutes to finish.
+</p>
+<p>Please check back again the <a href="{{ url_for('index_custom_request') }}">custom request page</a>
+   in a few moments to find the link to the results.
+</p>
+
+{% endblock %}

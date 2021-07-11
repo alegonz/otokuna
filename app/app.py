@@ -59,6 +59,8 @@ class Config:
     dtale_state_dir: str
     app_db_file: str
     bucket_name: str
+    sfn_region_name: str
+    sfn_arn: str
     scraped_data_key_prefix: str
     scraped_data_key_template: str
     predictions_key_prefix: str
@@ -97,6 +99,12 @@ REDIS_DB = AppRedis(CONFIG.app_db_file)
 app.secret_key = CONFIG.secret_key
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+class CustomRequestForm(FlaskForm):
+    # TODO: "begins with" validator to constrain to suumo URLs
+    #   e.g. begins with 'https://suumo.jp/jj/chintai/ichiran/FR301FC001/'
+    search_url = StringField("Search URL", validators=[InputRequired()])
 
 
 class LoginForm(FlaskForm):
@@ -311,7 +319,10 @@ def index_custom_request():
         job_info = JobInfo.json_loads(obj.get()["Body"].read())
         REDIS_DB.sadd(JOB_INFO_KEYS_KEY, obj.key)
         REDIS_DB.hset(JOB_INFO_KEY, job_info.job_id, job_info)
-    return render_template("index_custom_request.html", jobs=REDIS_DB.hvals(JOB_INFO_KEY))
+    # TODO: sort jobs by timestamp and user_id
+    return render_template("index_custom_request.html",
+                           jobs=REDIS_DB.hvals(JOB_INFO_KEY),
+                           form=CustomRequestForm())
 
 
 @app.route("/prediction/<job_id>")
@@ -325,6 +336,21 @@ def load_prediction(job_id):
                 allow_cell_edits=False,
                 inplace=True)
     return redirect(url_for("dtale.view_iframe", data_id=data_id))
+
+
+@app.route("/custom_request/submit", methods=("POST",))
+def submit_custom_request():
+    form = CustomRequestForm()
+    assert form.validate_on_submit()
+    input_data = {
+        "user_id": current_user.id,
+        "search_url": form.search_url.data
+    }
+    boto3.client("stepfunctions", region_name=CONFIG.sfn_region_name).start_execution(
+        stateMachineArn=CONFIG.sfn_arn,
+        input=json.dumps(input_data),
+    )
+    return render_template("request_submitted.html")
 
 
 # dtale already takes the default static path for its assets,
