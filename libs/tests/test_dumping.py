@@ -98,10 +98,14 @@ def test_build_search_url(monkeypatch):
     assert expected_query.items() <= parse_qs(urlparse(search_url).query, keep_blank_values=True).items()
 
 
-def test_scrape_number_of_pages():
-    with open(DATA_DIR / "results_first_page.html") as f:
+@pytest.mark.parametrize("html_file,expected", [
+    ("results_first_page.html", 1607),
+    ("results_first_page_single.html", 1),
+])
+def test_scrape_number_of_pages(html_file, expected):
+    with open(DATA_DIR / html_file) as f:
         search_results_soup = bs4.BeautifulSoup(f, "html.parser")
-    assert scrape_number_of_pages(search_results_soup) == 1607
+    assert scrape_number_of_pages(search_results_soup) == expected
 
 
 @pytest.mark.parametrize("page_filename,expected", [

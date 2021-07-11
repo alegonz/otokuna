@@ -141,7 +141,13 @@ def build_search_url(*, building_categories: Sequence[str], wards: Sequence[str]
 def scrape_number_of_pages(search_results_soup: bs4.BeautifulSoup) -> int:
     page_links = search_results_soup.select("ol.pagination-parts li a")
     # Beware of this number; the number of results might change while scraping?
-    last_page_number = int(page_links[-1].text)
+    if page_links:
+        # When there are two or more pages, the last item will always be a link
+        last_page_number = int(page_links[-1].text)
+    else:
+        # Where there is only one page, there are no links
+        assert len(search_results_soup.select("ol.pagination-parts li")) == 1
+        last_page_number = 1
     return last_page_number
 
 
