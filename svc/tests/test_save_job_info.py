@@ -17,7 +17,7 @@ def test_main(set_environ, monkeypatch):
 
     job_id = "someuuid"
     timestamp = 1611154415.0
-    user_name = "johndoe"
+    user_id = "johndoe"
     search_url = "dummyurl"
     root_key = f"jobs/{job_id}"
     raw_data_key = f"jobs/{job_id}/property_data.zip"
@@ -35,7 +35,7 @@ def test_main(set_environ, monkeypatch):
         "root_key": root_key,
         "job_id": job_id,
         "timestamp": timestamp,
-        "user_name": user_name,
+        "user_id": user_id,
         "search_url": search_url,
         "raw_data_key": raw_data_key,
         "scraped_data_key": scraped_data_key,
@@ -50,7 +50,7 @@ def test_main(set_environ, monkeypatch):
     expected_job_info = {
         "job_id": job_id,
         "timestamp": timestamp,
-        "user_name": user_name,
+        "user_id": user_id,
         "search_url": search_url,
         "search_conditions": expected_search_conditions,
         "raw_data_key": raw_data_key,

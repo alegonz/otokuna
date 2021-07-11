@@ -21,7 +21,7 @@ def main(event, context):
 
     items_to_save = (
         "job_id", "timestamp",
-        "user_name", "search_url",
+        "user_id", "search_url",
         "raw_data_key", "scraped_data_key", "prediction_data_key"
     )
     job_info = {item: event[item] for item in items_to_save}
