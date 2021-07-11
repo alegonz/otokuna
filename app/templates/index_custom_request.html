@@ -1,0 +1,39 @@
+<!-- templates/index_custom_request.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+    <h1 class="title">Custom request</h1>
+    <div class="content">
+        <p>TODO: input bar with a submit button go here
+        </p>
+    </div>
+</section>
+<section class="section">
+
+    <h2 class="subtitle">Previous requests</h2>
+    <table class="table">
+        <thead>
+            <tr>
+              <th>Datetime (JST)</th>
+              <th>User</th>
+              <th>Search conditions</th>
+              <th>View table link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.datetime_jst_formatted }}</td>
+                <td>{{ job.user_id }}</td>
+                <td><a href="{{ job.search_url }}">{{ job.search_conditions }}</a></td>
+                <td><a href="{{ url_for('load_prediction', job_id=job.job_id) }}">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('index_custom_request') }}">
+        <input class="button" type="submit" value="Refresh table">
+    </form>
+</section>
+{% endblock %}

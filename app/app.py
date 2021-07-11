@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import datetime
 import io
+import json
 import os
 import re
 import secrets
@@ -24,6 +25,29 @@ from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired
 
 from state import AppRedis
+
+
+@dataclass
+class JobInfo:
+    job_id: str
+    user_id: str
+    timestamp: float
+    search_url: str
+    search_conditions: str
+    raw_data_key: str
+    scraped_data_key: str
+    prediction_data_key: str
+
+    _JST = datetime.timezone(datetime.timedelta(seconds=32400), 'JST')
+
+    @classmethod
+    def json_loads(cls, bytes_or_str):
+        return cls(**json.loads(bytes_or_str))
+
+    @property
+    def datetime_jst_formatted(self):
+        d = datetime.datetime.fromtimestamp(self.timestamp, tz=self._JST)
+        return d.strftime("%Y-%m-%d %H:%M:%S")
 
 
 @dataclass
@@ -55,6 +79,8 @@ TEMPLATES_PATH = BASE_PATH / "templates"
 BUCKET = boto3.resource("s3").Bucket(CONFIG.bucket_name)
 ISO_DATETIMES_KEY = "iso_datetimes"
 DATAFRAMES_KEY = "dataframes"
+JOB_INFO_KEYS_KEY = "job_info_keys"
+JOB_INFO_KEY = "job_info"
 
 app = build_app(reaper_on=False, additional_templates=TEMPLATES_PATH)
 
@@ -132,6 +158,8 @@ def join_dataframes(scraped_df, prediction_df):
     return df
 
 
+# TODO: Retire this method once that daily jobs are
+#   handled the same way as user requested jobs
 def load_data_daily(date):
     if not REDIS_DB.hexists(ISO_DATETIMES_KEY, date):
         abort(404)
@@ -146,6 +174,17 @@ def load_data_daily(date):
     prediction_df = download_dataframe(key.format(iso_datetime))
     df = join_dataframes(scraped_df, prediction_df)
     REDIS_DB.hset(DATAFRAMES_KEY, date, df)
+    return df
+
+
+def load_data(job_id):
+    if REDIS_DB.hexists(DATAFRAMES_KEY, job_id):
+        return REDIS_DB.hget(DATAFRAMES_KEY, job_id)
+    job_info = REDIS_DB.hget(JOB_INFO_KEY, job_id)
+    scraped_df = download_dataframe(job_info.scraped_data_key)
+    prediction_df = download_dataframe(job_info.prediction_data_key)
+    df = join_dataframes(scraped_df, prediction_df)
+    REDIS_DB.hset(DATAFRAMES_KEY, job_id, df)
     return df
 
 
@@ -247,6 +286,8 @@ def index_daily():
     return render_template("index_daily.html", prediction_dates=prediction_dates)
 
 
+# TODO: Retire this method once that daily jobs are
+#   handled the same way as user requested jobs
 @app.route("/daily/prediction/<date>")
 def load_daily_prediction(date):
     df = load_data_daily(date)
@@ -254,6 +295,32 @@ def load_daily_prediction(date):
     _ = startup(data_id=data_id,
                 data=df,
                 name=date,
+                ignore_duplicate=True,
+                allow_cell_edits=False,
+                inplace=True)
+    return redirect(url_for("dtale.view_iframe", data_id=data_id))
+
+
+@app.route("/custom_request", methods=("GET", "POST"))
+@login_required
+def index_custom_request():
+    # TODO: the job info should be in a DB an the app should query that DB
+    for obj in BUCKET.objects.iterator(Prefix="jobs"):
+        if not obj.key.endswith("job_info.json") or REDIS_DB.sismember(JOB_INFO_KEYS_KEY, obj.key):
+            continue
+        job_info = JobInfo.json_loads(obj.get()["Body"].read())
+        REDIS_DB.sadd(JOB_INFO_KEYS_KEY, obj.key)
+        REDIS_DB.hset(JOB_INFO_KEY, job_info.job_id, job_info)
+    return render_template("index_custom_request.html", jobs=REDIS_DB.hvals(JOB_INFO_KEY))
+
+
+@app.route("/prediction/<job_id>")
+def load_prediction(job_id):
+    job_info = REDIS_DB.hget(JOB_INFO_KEY, job_id)
+    data_id = uuid.UUID(job_id).int
+    _ = startup(data_id=data_id,
+                data=load_data(job_id),
+                name=job_info.search_conditions,
                 ignore_duplicate=True,
                 allow_cell_edits=False,
                 inplace=True)
