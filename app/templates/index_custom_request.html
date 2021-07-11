@@ -1,0 +1,57 @@
+<!-- templates/index_custom_request.html -->
+
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+    <h1 class="title">Custom request</h1>
+    <div class="content">
+        <p>Here you can generate predictions for any search conditions you like.Input a Suumo search results URL to sub
+        </p>
+        <ol>
+            <li>Go to Suumo and do a property search setting any conditions you like.</li>
+            <li>Copy the search results page URL into the form below and hit "Submit".</li>
+            <li>The generated predictions will be shown after a few moments in the table below.
+                Click the "View" link to see the generated predictions.</li>
+        </ol>
+        <p>The URL starts with:
+        </p>
+        <p class="is-family-monospace">https://suumo.jp/jj/chintai/ichiran/FR301FC001/</p>
+        <form method="POST" action="{{ url_for('submit_custom_request') }}">
+            {{ form.csrf_token }}
+            <div class="field">
+                <div class="control">
+                    {{ form.search_url(class="input is-large") }}
+                </div>
+            </div>
+            <button class="button is-block is-info is-large is-fullwidth">Submit</button>
+        </form>
+    </div>
+</section>
+<section class="section">
+
+    <h2 class="subtitle">Previous requests</h2>
+    <table class="table">
+        <thead>
+            <tr>
+              <th>Datetime (JST)</th>
+              <th>User</th>
+              <th>Search conditions</th>
+              <th>View table link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.datetime_jst_formatted }}</td>
+                <td>{{ job.user_id }}</td>
+                <td><a href="{{ job.search_url }}">{{ job.search_conditions }}</a></td>
+                <td><a href="{{ url_for('load_prediction', job_id=job.job_id) }}">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('index_custom_request') }}">
+        <input class="button" type="submit" value="Refresh table">
+    </form>
+</section>
+{% endblock %}

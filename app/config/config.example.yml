@@ -8,6 +8,8 @@ users:
 dtale_state_dir: "/tmp/otokuna_dtale_state"
 app_db_file: "/tmp/otokuna_app_state.db"
 bucket_name: "mybucket"
+sfn_region_name: "us-west-2"
+sfn_arn: "some_arn"  # same arn that is set in the policy of the IAM role for the app
 scraped_data_key_prefix: "dumped_data/daily"
 scraped_data_key_template: "{}/東京都.pickle"  # relative to scraped_data_key_prefix
 predictions_key_prefix: "predictions/daily"
