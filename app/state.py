@@ -14,8 +14,6 @@ class AppRedis(Redis):
         value = super().hget(name, key)
         return pickle.loads(value) if value is not None else None
 
-    def sadd(self, name, *values):
-        return super().sadd(name, *(pickle.dumps(v) for v in values))
-
-    def sismember(self, name, value):
-        return super().sismember(name, pickle.dumps(value))
+    def hvals(self, name):
+        values = super().hvals(name)
+        return [pickle.loads(v) for v in values] if values else []
